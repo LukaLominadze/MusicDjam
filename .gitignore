@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# configuration files
+*.conf
+!*.example.conf
+volumes

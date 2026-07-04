@@ -3,13 +3,13 @@ services:
     image: nginx:1.27-alpine
     restart: unless-stopped
     ports:
-      - "$NGINX_PORT$:443"
+      - "443:443"
     volumes:
       - ./DockerScripts/Nginx/conf.d/django.conf:/etc/nginx/conf.d/django.conf:ro
       - ./DockerScripts/Nginx/conf.d/fs-admin.conf:/etc/nginx/conf.d/fs-admin.conf:ro
       - ./DockerScripts/Nginx/conf.d/fs-s3.conf:/etc/nginx/conf.d/fs-s3.conf:ro
       - ./DockerScripts/Nginx/conf.d/adminer.conf:/etc/nginx/conf.d/adminer.conf:ro
-      - $SSL_DIR_PATH$:/etc/nginx/certs:ro
+      - ./ssl:/etc/nginx/certs:ro
     networks:
       public-network:
         ipv4_address: 172.20.0.12
@@ -37,11 +37,11 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     ports:
-      - "$POSTGRES_PORT$:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_DB: $POSTGRES_DB$
-      POSTGRES_USER: $POSTGRES_USER$
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD$
+      POSTGRES_DB: earpiece
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password4231
     volumes:
       - db:/var/lib/postgresql/data
     networks:
@@ -65,7 +65,7 @@ services:
     image: chrislusf/seaweedfs:latest
     restart: unless-stopped
     volumes:
-      - $FS_MASTER_VOLUME_DIR$:/data
+      - ./volumes/fs_master:/data
     command: master -ip.bind=0.0.0.0 -mdir=/data
     networks:
       public-network:
@@ -75,7 +75,7 @@ services:
     restart: unless-stopped
     command: admin -port 80 -masters="fs-master:9333" -dataDir=/data
     volumes:
-      - $FS_ADMIN_VOLUME_DIR$:/data
+      - ./volumes/fs_admin:/data
     networks:
       public-network:
         ipv4_address: 172.20.0.66
@@ -83,8 +83,8 @@ services:
     image: chrislusf/seaweedfs:latest
     restart: unless-stopped
     volumes:
-      - $FS_VOLUME_VOLUME_DIR$:/data
-    command: volume -master=fs-master:9333 -port=$FS_VOLUME_PORT$ -dir=/data
+      - ./volumes/fs_volume:/data
+    command: volume -master=fs-master:9333 -port=443 -dir=/data
     depends_on:
       - fs-master
     networks:
@@ -104,8 +104,8 @@ services:
     image: chrislusf/seaweedfs:latest
     restart: unless-stopped
     environment:
-      - AWS_ACCESS_KEY_ID=$FS_S3_ACCESS_KEY_ID$
-      - AWS_SECRET_ACCESS_KEY=$FS_S3_SECRET_ACCESS_KEY$
+      - AWS_ACCESS_KEY_ID=myaccesskeyid
+      - AWS_SECRET_ACCESS_KEY=mysecretaccesskey
     command: s3 -filer=fs-filer:8888 -ip.bind=0.0.0.0
     depends_on:
       - fs-filer
