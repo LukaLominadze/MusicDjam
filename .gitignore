@@ -221,3 +221,4 @@ __marimo__/
 *.conf
 !*.example.conf
 volumes
+compose.yaml

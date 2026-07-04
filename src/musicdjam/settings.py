@@ -29,7 +29,13 @@ SECRET_KEY = 'django-insecure-lr9*-g(8(=r7u2ikyss0*@*ab*hl@@!5irvco_-1)l+rl-e9=^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    os.getenv('DJANGO_DOMAIN')
+]
+
+CSRF_TRUSTED_ORIGINS = [
+        f'https://{os.getenv('DJANGO_DOMAIN')}'
+]
 
 
 # Application definition
