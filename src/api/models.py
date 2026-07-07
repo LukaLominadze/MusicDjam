@@ -5,17 +5,6 @@ import uuid
 
 # Create your models here.
 
-class User(AbstractUser):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    email = models.EmailField(unique=True)
-
-    def __str__(self):
-        return self.username
-
 
 class FileMetadata(models.Model):
     id = models.UUIDField(
@@ -30,9 +19,26 @@ class FileMetadata(models.Model):
         return str(self.id)
 
 
+class User(AbstractUser):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    email = models.EmailField(unique=True)
+    profile_picture = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.username
+
+
 class Artist(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    cover = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Album(models.Model):
@@ -40,6 +46,9 @@ class Album(models.Model):
     title = models.CharField(max_length=100)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     cover = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.title
 
 
 class Music(models.Model):
@@ -51,6 +60,9 @@ class Music(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     music_file = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
 
+    def __str__(self):
+        return self.title
+
 
 class Playlist(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -60,3 +72,7 @@ class Playlist(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     songs = models.ManyToManyField(Music, related_name='playlists', blank=True)
     cover = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.title
+
