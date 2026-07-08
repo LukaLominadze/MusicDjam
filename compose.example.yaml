@@ -9,7 +9,7 @@ services:
       - ./DockerScripts/Nginx/conf.d/fs-admin.conf:/etc/nginx/conf.d/fs-admin.conf:ro
       - ./DockerScripts/Nginx/conf.d/fs-s3.conf:/etc/nginx/conf.d/fs-s3.conf:ro
       - ./DockerScripts/Nginx/conf.d/adminer.conf:/etc/nginx/conf.d/adminer.conf:ro
-      - $SSL_DIR_PATH$:/etc/nginx/certs:ro
+      - $SSL_DIR_PATH$:$SSL_DIR_PATH$:ro
     networks:
       public-network:
         ipv4_address: 172.20.0.12

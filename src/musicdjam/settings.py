@@ -133,10 +133,10 @@ AWS_STORAGE_BUCKET_NAME = os.environ.get('FS_S3_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.environ.get('FS_S3_REGION_NAME', 'us-east-1') # SeaweedFS usually ignores this, but boto3 requires it
 
 AWS_S3_ENDPOINT_URL = 'http://fs-s3:8333' 
-PUBLIC_STORAGE_URL = f'https://{os.getenv('DJANGO_DOMAIN')}:{os.getenv('DJANGO_PORT')}'
+AWS_PUBLIC_STORAGE_URL = f'https://{os.getenv('FS_S3_DOMAIN')}:{os.getenv('FS_S3_PORT')}'
 
-AWS_S3_CUSTOM_DOMAIN = urlparse(PUBLIC_STORAGE_URL).netloc
-AWS_S3_SECURE_URLS = PUBLIC_STORAGE_URL.startswith('https')
+AWS_S3_CUSTOM_DOMAIN = urlparse(AWS_PUBLIC_STORAGE_URL).netloc
+AWS_S3_SECURE_URLS = AWS_PUBLIC_STORAGE_URL.startswith('https')
 AWS_S3_ADDRESSING_STYLE = 'path'
 
 AWS_DEFAULT_ACL = 'private'

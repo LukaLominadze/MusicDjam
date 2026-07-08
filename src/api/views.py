@@ -31,14 +31,15 @@ class UserProfileViewSet(viewsets.ViewSet):
 
     def get_s3_client(self):
         return boto3.client(
+            service_name='s3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            endpoint_url=settings.get('FS_S3_PUBLIC_STORAGE_URL'),
+            endpoint_url=settings.AWS_PUBLIC_STORAGE_URL,
             region_name=settings.AWS_S3_REGION_NAME,
-            config=Config(s3={'addressing_style': 'path'})
+            config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
         )
 
-    @action(detail=False, methods=['post'], url_path='update-profile-picture')
+    @action(detail=False, methods=['put'], url_path='update-profile-picture')
     def update_profile_picture(self, request):
         user = request.user
         content_type = request.data.get('file_type', 'undefined')
@@ -71,28 +72,24 @@ class UserProfileViewSet(viewsets.ViewSet):
         s3_key = f'{fs_id}'
 
         try:
-            presigned_post = s3_client.generate_presigned_post(
-                Bucket=bucket,
-                Key=s3_key,
-                Fields={'acl': 'private', 'Content-Type': content_type},
-                Conditions=[
-                    {'acl': 'private'},
-                    {'Content-Type': content_type},
-                    ['content-length-range', 1, 10485760]
-                ],
+            presigned_post = s3_client.generate_presigned_url(
+                ClientMethod='put_object',
+                Params={
+                    'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                    'Key': s3_key,
+                },
                 ExpiresIn=600
             )
             
             return Response({
-                'upload_url': presigned_post['url'],
-                'fields': presigned_post['fields'],
+                'upload_url': presigned_post,
                 'fs_id': fs_id,
                 'requires_completion': not is_existing
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post'], url_path='complete-update-profile-pic')
+    @action(detail=False, methods=['put'], url_path='complete-update-profile-pic')
     def complete_update_profile_pic(self, request):
         user = request.user
         fs_id = request.data.get('fs_id')
