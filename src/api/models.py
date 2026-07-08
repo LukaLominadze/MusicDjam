@@ -54,6 +54,7 @@ class Album(models.Model):
 class Music(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=100)
+    length = models.IntegerField()
     is_public = models.BooleanField(default=True)
     artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True)

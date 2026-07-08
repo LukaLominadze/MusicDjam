@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | MusicDjam{% endblock %}
+
+{% block body %}
+<div>
+    <form>
+	<input type="text" placeholder="Enter username..." />
+	<input type="text" placeholder="Enter email..." />
+	<input type="text" placeholder="Enter password..." />
+	<button>Register</button>
+    </form>
+    <a href="{% url 'login' %}">Already have an account? Click here to log in!</a>
+</div>
+{% endblock %}

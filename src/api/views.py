@@ -9,8 +9,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from botocore.exceptions import ClientError
 from botocore.config import Config
-from .serializers import RegisterSerializer
-from .models import FileMetadata, User
+from .serializers import RegisterSerializer, ArtistSerializer
+from .models import FileMetadata, User, Artist
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -136,3 +136,10 @@ class UserProfileViewSet(viewsets.ViewSet):
         metadata.save()
 
         return Response({'detail', 'Profile picture synchronized'}, status=status.HTTP_200_OK)
+
+
+class ArtistViewSet(viewsets.ModelViewSet):
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer
+
+    permission_classes = [IsAuthenticated]
