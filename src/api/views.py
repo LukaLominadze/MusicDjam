@@ -1,6 +1,6 @@
 import uuid
 import boto3
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from botocore.exceptions import ClientError
 from botocore.config import Config
 from .serializers import RegisterSerializer
-from .models import FileMetadata
+from .models import FileMetadata, User
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -38,6 +38,37 @@ class UserProfileViewSet(viewsets.ViewSet):
             region_name=settings.AWS_S3_REGION_NAME,
             config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
         )
+
+    
+    def list(self, request):
+        username = request.query_params.get('username')
+        if not username:
+            return Response({'error': 'User Id missing!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(username=username)
+        if not user:
+            return Response({'error': 'User with username not found!'}, status=status.HTTP_404_NOT_FOUND)
+
+        s3_client = self.get_s3_client()
+
+        if user.profile_picture and user.profile_picture.fs_id:            
+            try:
+                presigned_post = s3_client.generate_presigned_url(
+                    ClientMethod='get_object',
+                    Params={
+                        'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                        'Key': str(user.profile_picture.fs_id),
+                    },
+                    ExpiresIn=600
+                )
+                
+                return Response({
+                    'download_url': presigned_post,
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error': 'User does not have a profile picture'}, status=status.HTTP_404_NOT_FOUND)
+
 
     @action(detail=False, methods=['put'], url_path='update-profile-picture')
     def update_profile_picture(self, request):
