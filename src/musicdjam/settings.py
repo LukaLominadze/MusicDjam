@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -126,6 +127,28 @@ REST_FRAMEWORK = {
     )
 }
 
+AWS_ACCESS_KEY_ID = os.environ.get('FS_S3_DJANGO_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('FS_S3_DJANGO_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('FS_S3_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.environ.get('FS_S3_REGION_NAME', 'us-east-1') # SeaweedFS usually ignores this, but boto3 requires it
+
+AWS_S3_ENDPOINT_URL = 'http://fs-s3:8333' 
+PUBLIC_STORAGE_URL = f'https://{os.getenv('DJANGO_DOMAIN')}:{os.getenv('DJANGO_PORT')}'
+
+AWS_S3_CUSTOM_DOMAIN = urlparse(PUBLIC_STORAGE_URL).netloc
+AWS_S3_SECURE_URLS = PUBLIC_STORAGE_URL.startswith('https')
+AWS_S3_ADDRESSING_STYLE = 'path'
+
+AWS_DEFAULT_ACL = 'private'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
