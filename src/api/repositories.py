@@ -1,11 +1,31 @@
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from .models import Artist, Album, Music, Playlist
 from .serializers import ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer
 
 class MusicRepository:
-    def list(self):
-        return Music.objects.all()
+    def list(self, filters=None):
+        qs = Music.objects.all()
+        if not filters:
+            return qs
+        if filters.get('artist'):
+            qs = qs.filter(artist_id=filters['artist'])
+        if filters.get('album'):
+            qs = qs.filter(album_id=filters['album'])
+        if filters.get('owner'):
+            qs = qs.filter(owner_id=filters['owner'])
+        if filters.get('is_public') is not None:
+            qs = qs.filter(is_public=filters['is_public'])
+        if filters.get('title'):
+            qs = qs.filter(title__icontains=filters['title'])
+        if search := filters.get('search'):
+            qs = qs.filter(
+                Q(title__icontains=search) |
+                Q(artist__name__icontains=search) |
+                Q(album__title__icontains=search)
+            )
+        return qs
 
     def retrieve(self, pk):
         return get_object_or_404(Music, pk=pk)

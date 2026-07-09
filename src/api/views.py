@@ -89,7 +89,14 @@ class MusicViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def list(self, request):
-        music_list = self.repository.list()
+        filters = {
+            k: request.query_params.get(k)
+            for k in ('artist', 'album', 'owner', 'is_public', 'title', 'search')
+            if request.query_params.get(k)
+        }
+        if 'is_public' in filters:
+            filters['is_public'] = filters['is_public'].lower() == 'true'
+        music_list = self.repository.list(filters)
         serializer = self.get_serializer(music_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
