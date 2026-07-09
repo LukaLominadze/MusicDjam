@@ -2,12 +2,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterView, UserProfileViewSet, ArtistViewSet
+from .views import RegisterView, UserProfileViewSet, ArtistViewSet, AlbumViewSet, MusicViewSet, PlaylistViewSet
 
 router = DefaultRouter()
 
 router.register('profile', UserProfileViewSet, basename='user-profile')
 router.register('artist', ArtistViewSet, basename='artist')
+router.register('album', AlbumViewSet, basename='album')
+router.register('music', MusicViewSet, basename='music')
+router.register('playlist', PlaylistViewSet, basename='playlist')
 
 urlpatterns = [
     # Leave empty for now, or add a placeholder view

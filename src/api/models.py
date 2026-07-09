@@ -54,7 +54,7 @@ class Album(models.Model):
 class Music(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=100)
-    length = models.IntegerField()
+    length = models.IntegerField(default=0)
     is_public = models.BooleanField(default=True)
     artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True)
@@ -72,7 +72,6 @@ class Playlist(models.Model):
     cover = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     songs = models.ManyToManyField(Music, related_name='playlists', blank=True)
-    cover = models.ForeignKey(FileMetadata, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.title
