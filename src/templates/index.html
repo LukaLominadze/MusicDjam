@@ -460,6 +460,62 @@
         transition: width 0.1s linear;
     }
 
+    .player-volume {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-shrink: 0;
+        min-width: 110px;
+    }
+
+    .player-volume svg {
+        flex-shrink: 0;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .player-volume svg:hover {
+        color: var(--text-primary);
+    }
+
+    .player-volume input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 80px;
+        height: 4px;
+        background: rgba(155, 89, 182, 0.2);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .player-volume input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent-pink);
+        cursor: pointer;
+        box-shadow: 0 0 6px rgba(233, 30, 140, 0.4);
+        transition: transform 0.15s ease;
+    }
+
+    .player-volume input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+
+    .player-volume input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border: none;
+        border-radius: 50%;
+        background: var(--accent-pink);
+        cursor: pointer;
+        box-shadow: 0 0 6px rgba(233, 30, 140, 0.4);
+    }
+
     .loading-spinner {
         display: flex;
         justify-content: center;
@@ -504,6 +560,10 @@
         }
 
         .player-progress-wrap {
+            display: none;
+        }
+
+        .player-volume {
             display: none;
         }
     }
@@ -586,6 +646,14 @@
             <div class="player-progress-fill" id="playerProgressFill"></div>
         </div>
         <span class="player-time" id="playerTotalTime">0:00</span>
+    </div>
+    <div class="player-volume">
+        <svg id="volumeIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" onclick="toggleMute()">
+            <path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/>
+            <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/>
+            <path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06"/>
+        </svg>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" oninput="setVolume(this.value)">
     </div>
 </div>
 
@@ -957,6 +1025,35 @@ function seekAudio(event) {
     const rect = bar.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
     audio.currentTime = ratio * audio.duration;
+}
+
+function setVolume(val) {
+    audio.volume = val;
+    updateVolumeIcon(val);
+}
+
+function toggleMute() {
+    const slider = document.getElementById('volumeSlider');
+    if (audio.volume > 0) {
+        audio._prevVolume = audio.volume;
+        audio.volume = 0;
+        slider.value = 0;
+    } else {
+        audio.volume = audio._prevVolume || 1;
+        slider.value = audio.volume;
+    }
+    updateVolumeIcon(audio.volume);
+}
+
+function updateVolumeIcon(vol) {
+    const icon = document.getElementById('volumeIcon');
+    if (vol == 0) {
+        icon.innerHTML = '<path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06M9.879 5.655a.5.5 0 0 0-.766-.207L7.947 6.65H6.5v2.7h1.447l1.166 1.202a.5.5 0 0 0 .766-.207z"/><line x1="1" y1="1" x2="15" y2="15" stroke="currentColor" stroke-width="1.5"/>';
+    } else if (vol < 0.5) {
+        icon.innerHTML = '<path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/><path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475z"/><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06"/>';
+    } else {
+        icon.innerHTML = '<path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/><path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06"/>';
+    }
 }
 
 audio.addEventListener('timeupdate', () => {
