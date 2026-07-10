@@ -160,7 +160,7 @@
 
 <script>
 const playlistId = {{ playlist_id|default:"null" }};
-const userId = {{ user_id }};
+const userId = '{{ user_id }}';
 const isStaff = {{ is_staff|yesno:"true,false" }};
 
 const titleInput = document.getElementById('playlistTitle');
