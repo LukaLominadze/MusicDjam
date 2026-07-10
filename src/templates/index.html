@@ -17,6 +17,38 @@
         margin-bottom: 2rem;
     }
 
+    .view-toggles {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    .view-toggle-btn {
+        background: rgba(155, 89, 182, 0.1);
+        border: 1.5px solid rgba(155, 89, 182, 0.2);
+        border-radius: 10px;
+        padding: 0.5rem 1.1rem;
+        color: var(--text-muted);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .view-toggle-btn:hover {
+        border-color: var(--accent-pink);
+        color: var(--text-primary);
+    }
+
+    .view-toggle-btn.active {
+        background: linear-gradient(135deg, var(--accent-pink), #c01070);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 2px 12px rgba(233, 30, 140, 0.3);
+    }
+
     .search-bar {
         display: flex;
         gap: 0.75rem;
@@ -573,6 +605,12 @@
 {% block body %}
 <div class="explore-container">
     <div class="search-section">
+        <div class="view-toggles">
+            <button class="view-toggle-btn active" data-view="music" onclick="switchView('music')">Music</button>
+            <button class="view-toggle-btn" data-view="artists" onclick="switchView('artists')">Artists</button>
+            <button class="view-toggle-btn" data-view="albums" onclick="switchView('albums')">Albums</button>
+            <button class="view-toggle-btn" data-view="playlists" onclick="switchView('playlists')">Playlists</button>
+        </div>
         <div class="search-bar">
             <div class="search-input-wrap">
                 <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -663,11 +701,27 @@
 const PAGE_SIZE = 30;
 let currentPage = 1;
 let totalResults = 0;
-let currentMusicData = [];
-let cardTemplate = '';
+let currentData = [];
+let currentView = 'music';
 let audioCache = new Map();
 let currentPlayingId = null;
 let isPlaying = false;
+
+const templates = {};
+
+const VIEW_CONFIG = {
+    music:    { api: '/api/music/',    template: '/music_card.html',    emptyMsg: 'No music found' },
+    artists:  { api: '/api/artist/',   template: '/artist_card.html',  emptyMsg: 'No artists found' },
+    albums:   { api: '/api/album/',    template: '/album_card.html',   emptyMsg: 'No albums found' },
+    playlists:{ api: '/api/playlist/', template: '/playlist_card.html', emptyMsg: 'No playlists found' },
+};
+
+const FILTER_IDS_BY_VIEW = {
+    music:     ['filterTitle', 'filterArtist', 'filterAlbum', 'filterPublic'],
+    artists:   ['filterArtist'],
+    albums:    ['filterTitle', 'filterArtist'],
+    playlists: ['filterTitle', 'filterPublic'],
+};
 
 const audio = document.getElementById('audioPlayer');
 const searchInput = document.getElementById('searchInput');
@@ -676,9 +730,36 @@ searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') doSearch();
 });
 
-async function loadTemplate() {
-    const resp = await fetch('/music_card.html');
-    cardTemplate = await resp.text();
+async function loadTemplates() {
+    const views = ['music', 'artists', 'albums', 'playlists'];
+    await Promise.all(views.map(async (v) => {
+        const resp = await fetch(VIEW_CONFIG[v].template);
+        templates[v] = await resp.text();
+    }));
+}
+
+function switchView(view) {
+    if (currentView === view) return;
+    currentView = view;
+    currentPage = 1;
+
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+
+    const filterGroups = document.querySelectorAll('.advanced-filters .filter-group');
+    const visibleFilters = FILTER_IDS_BY_VIEW[view] || [];
+    filterGroups.forEach(g => {
+        const input = g.querySelector('input, select');
+        if (input) {
+            g.style.display = visibleFilters.includes(input.id) ? '' : 'none';
+        }
+    });
+
+    const placeholder = { music: 'Search songs, artists, albums...', artists: 'Search artists...', albums: 'Search albums...', playlists: 'Search playlists...' };
+    searchInput.placeholder = placeholder[view] || '';
+
+    fetchAndRender();
 }
 
 function toggleFilters() {
@@ -709,17 +790,29 @@ function buildQueryParams() {
     const search = searchInput.value.trim();
     if (search) params.set('search', search);
 
-    const title = document.getElementById('filterTitle').value.trim();
-    if (title) params.set('title', title);
-
-    const artist = document.getElementById('filterArtist').value.trim();
-    if (artist) params.set('artist', artist);
-
-    const album = document.getElementById('filterAlbum').value.trim();
-    if (album) params.set('album', album);
-
-    const pub = document.getElementById('filterPublic').value;
-    if (pub) params.set('is_public', pub);
+    if (currentView === 'music') {
+        const title = document.getElementById('filterTitle').value.trim();
+        if (title) params.set('title', title);
+        const artist = document.getElementById('filterArtist').value.trim();
+        if (artist) params.set('artist', artist);
+        const album = document.getElementById('filterAlbum').value.trim();
+        if (album) params.set('album', album);
+        const pub = document.getElementById('filterPublic').value;
+        if (pub) params.set('is_public', pub);
+    } else if (currentView === 'artists') {
+        const name = document.getElementById('filterArtist').value.trim();
+        if (name) params.set('name', name);
+    } else if (currentView === 'albums') {
+        const title = document.getElementById('filterTitle').value.trim();
+        if (title) params.set('title', title);
+        const artist = document.getElementById('filterArtist').value.trim();
+        if (artist) params.set('artist', artist);
+    } else if (currentView === 'playlists') {
+        const title = document.getElementById('filterTitle').value.trim();
+        if (title) params.set('title', title);
+        const pub = document.getElementById('filterPublic').value;
+        if (pub) params.set('is_public', pub);
+    }
 
     return params;
 }
@@ -733,6 +826,7 @@ async function fetchAndRender() {
     const container = document.getElementById('musicContainer');
     const spinner = document.getElementById('loadingSpinner');
     const pagination = document.getElementById('pagination');
+    const cfg = VIEW_CONFIG[currentView];
 
     container.innerHTML = '';
     spinner.style.display = 'flex';
@@ -740,19 +834,19 @@ async function fetchAndRender() {
 
     try {
         const params = buildQueryParams();
-        const resp = await fetch('/api/music/?' + params.toString(), {
+        const resp = await fetch(cfg.api + '?' + params.toString(), {
             credentials: 'same-origin'
         });
 
-        if (!resp.ok) throw new Error('Failed to fetch music');
+        if (!resp.ok) throw new Error('Failed to fetch data');
 
         const data = await resp.json();
-        currentMusicData = data.results || [];
+        currentData = data.results || [];
         totalResults = data.total || 0;
 
         spinner.style.display = 'none';
 
-        if (currentMusicData.length === 0) {
+        if (currentData.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
@@ -760,13 +854,13 @@ async function fetchAndRender() {
                         <path fill-rule="evenodd" d="M14 11V2h1v11zM1.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 1 0V2.5A.5.5 0 0 0 1.5 2m13-1a.5.5 0 0 0-.5-.5H14v11h.5a.5.5 0 0 0 0-1h-13a.5.5 0 0 0 0 1H2V1.5a.5.5 0 0 0-.5-.5z"/>
                         <path d="M4 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V4zm5-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V2z"/>
                     </svg>
-                    <h3>No music found</h3>
-                    <p>Try a different search or adjust your filters.</p>
+                    <h3>${cfg.emptyMsg}</h3>
+                    <p>Try a different search.</p>
                 </div>`;
             return;
         }
 
-        renderCards(currentMusicData);
+        renderCards(currentData);
         renderPagination();
     } catch (err) {
         spinner.style.display = 'none';
@@ -778,43 +872,67 @@ async function fetchAndRender() {
     }
 }
 
-function renderCards(musicList) {
+function renderCards(items) {
     const container = document.getElementById('musicContainer');
     const grid = document.createElement('div');
     grid.className = 'music-grid';
+    const tpl = templates[currentView];
 
-    musicList.forEach((m, i) => {
-        const artistName = m.artist ? m.artist.name : 'Unknown Artist';
-        const albumTitle = m.album ? m.album.title : 'Unknown Album';
-        const lengthStr = formatLength(m.length);
-        const playDisabled = m.has_file ? '' : 'disabled';
-        const coverUrl = m.artist && m.artist.id ? `/api/artist/${m.artist.id}/download-cover/` : '';
+    items.forEach((item, i) => {
+        let cardHtml;
 
-        let cardHtml = cardTemplate
-            .replace(/\{\{id\}\}/g, m.id)
-            .replace(/\{\{title\}\}/g, escapeHtml(m.title || 'Untitled'))
-            .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
-            .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
-            .replace(/\{\{length_formatted\}\}/g, lengthStr)
-            .replace(/\{\{play_disabled\}\}/g, playDisabled)
-            .replace(/\{\{fs_id\}\}/g, m.music_file || '');
+        if (currentView === 'music') {
+            const artistName = item.artist ? item.artist.name : 'Unknown Artist';
+            const albumTitle = item.album ? item.album.title : 'Unknown Album';
+            const lengthStr = formatLength(item.length);
+            const playDisabled = item.has_file ? '' : 'disabled';
+
+            cardHtml = tpl
+                .replace(/\{\{id\}\}/g, item.id)
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
+                .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
+                .replace(/\{\{length_formatted\}\}/g, lengthStr)
+                .replace(/\{\{play_disabled\}\}/g, playDisabled)
+                .replace(/\{\{fs_id\}\}/g, item.music_file || '');
+
+        } else if (currentView === 'artists') {
+            cardHtml = tpl
+                .replace(/\{\{id\}\}/g, item.id)
+                .replace(/\{\{name\}\}/g, escapeHtml(item.name || 'Unknown'));
+
+        } else if (currentView === 'albums') {
+            const artistName = item.artist ? item.artist.name : 'Unknown Artist';
+            cardHtml = tpl
+                .replace(/\{\{id\}\}/g, item.id)
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName));
+
+        } else if (currentView === 'playlists') {
+            cardHtml = tpl
+                .replace(/\{\{id\}\}/g, item.id)
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{song_count\}\}/g, item.song_count || 0)
+                .replace(/\{\{visibility\}\}/g, item.is_public ? 'Public' : 'Private');
+        }
 
         const temp = document.createElement('div');
         temp.innerHTML = cardHtml.trim();
         const card = temp.firstElementChild;
         card.style.animationDelay = (i * 0.03) + 's';
 
-        if (m.artist && m.artist.id) {
-            fetchCover(m.artist.id, card);
-        }
-
-        if (currentPlayingId === m.id) {
-            card.classList.add('playing');
-            const btn = card.querySelector('.music-card-play-btn');
-            if (btn) {
-                btn.querySelector('.icon-play').style.display = 'none';
-                btn.querySelector('.icon-pause').style.display = 'block';
+        if (currentView === 'music') {
+            if (item.artist && item.artist.id) fetchCover(item.artist.id, card, 'artist');
+        } else if (currentView === 'artists') {
+            fetchCover(item.id, card, 'artist');
+        } else if (currentView === 'albums') {
+            if (item.cover) {
+                fetchCoverById(item.id, card, 'album');
+            } else if (item.artist && item.artist.id) {
+                fetchCover(item.artist.id, card, 'artist');
             }
+        } else if (currentView === 'playlists') {
+            if (item.cover) fetchCoverById(item.id, card, 'playlist');
         }
 
         grid.appendChild(card);
@@ -823,18 +941,34 @@ function renderCards(musicList) {
     container.appendChild(grid);
 }
 
-async function fetchCover(artistId, cardEl) {
-    const cacheKey = 'cover_' + artistId;
+async function fetchCover(entityId, cardEl, type) {
+    const cacheKey = 'cover_' + type + '_' + entityId;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
         setCoverImage(cardEl, cached);
         return;
     }
-
     try {
-        const resp = await fetch(`/api/artist/${artistId}/download-cover/`, {
-            credentials: 'same-origin'
-        });
+        const resp = await fetch(`/api/${type}/${entityId}/download-cover/`, { credentials: 'same-origin' });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.download_url) {
+                sessionStorage.setItem(cacheKey, data.download_url);
+                setCoverImage(cardEl, data.download_url);
+            }
+        }
+    } catch (e) { }
+}
+
+async function fetchCoverById(entityId, cardEl, type) {
+    const cacheKey = 'cover_' + type + '_' + entityId;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+        setCoverImage(cardEl, cached);
+        return;
+    }
+    try {
+        const resp = await fetch(`/api/${type}/${entityId}/download-cover/`, { credentials: 'same-origin' });
         if (resp.ok) {
             const data = await resp.json();
             if (data.download_url) {
@@ -847,9 +981,7 @@ async function fetchCover(artistId, cardEl) {
 
 function setCoverImage(cardEl, url) {
     const img = cardEl.querySelector('.music-card-cover img');
-    if (img) {
-        img.src = url;
-    }
+    if (img) img.src = url;
 }
 
 function renderPagination() {
@@ -878,17 +1010,15 @@ async function togglePlay(musicId, btnEl) {
         pauseMusic();
         return;
     }
-
     if (currentPlayingId === musicId && !isPlaying) {
         resumeMusic();
         return;
     }
-
     await playMusic(musicId);
 }
 
 async function playMusic(musicId) {
-    const musicItem = currentMusicData.find(m => m.id === musicId);
+    const musicItem = currentData.find(m => m.id === musicId);
     if (!musicItem) return;
 
     showPlayerBar(musicItem);
@@ -916,9 +1046,7 @@ async function playMusic(musicId) {
     }
 
     try {
-        const resp = await fetch(`/api/music/${musicId}/download/`, {
-            credentials: 'same-origin'
-        });
+        const resp = await fetch(`/api/music/${musicId}/download/`, { credentials: 'same-origin' });
         if (!resp.ok) throw new Error('Download unavailable');
 
         const data = await resp.json();
@@ -1001,7 +1129,7 @@ function showPlayerBar(musicItem) {
 
     const coverEl = document.getElementById('playerCover');
     if (musicItem.artist && musicItem.artist.id) {
-        const cacheKey = 'cover_' + musicItem.artist.id;
+        const cacheKey = 'cover_artist_' + musicItem.artist.id;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             coverEl.innerHTML = `<img src="${cached}" alt="Cover">`;
@@ -1079,6 +1207,6 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-loadTemplate().then(() => fetchAndRender());
+loadTemplates().then(() => fetchAndRender());
 </script>
 {% endblock %}

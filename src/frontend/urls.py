@@ -7,5 +7,8 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('register', views.register, name='register'),
     path('profile', views.profile, name='profile'),
-    path('music_card.html', views.music_card_template, name='music_card_template'),
+    path('music_card.html', views.serve_template('music_card.html'), name='music_card_template'),
+    path('artist_card.html', views.serve_template('artist_card.html'), name='artist_card_template'),
+    path('album_card.html', views.serve_template('album_card.html'), name='album_card_template'),
+    path('playlist_card.html', views.serve_template('playlist_card.html'), name='playlist_card_template'),
 ]

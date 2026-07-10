@@ -45,8 +45,17 @@ class MusicRepository:
 
 
 class PlaylistRepository:
-    def list(self):
-        return Playlist.objects.all()
+    def list(self, filters=None):
+        qs = Playlist.objects.all()
+        if not filters:
+            return qs
+        if filters.get('title'):
+            qs = qs.filter(title__icontains=filters['title'])
+        if filters.get('is_public') is not None:
+            qs = qs.filter(is_public=filters['is_public'])
+        if search := filters.get('search'):
+            qs = qs.filter(Q(title__icontains=search))
+        return qs
 
     def retrieve(self, pk):
         return get_object_or_404(Playlist, pk=pk)
@@ -66,8 +75,20 @@ class PlaylistRepository:
 
 
 class AlbumRepository:
-    def list(self):
-        return Album.objects.all()
+    def list(self, filters=None):
+        qs = Album.objects.all()
+        if not filters:
+            return qs
+        if filters.get('title'):
+            qs = qs.filter(title__icontains=filters['title'])
+        if filters.get('artist'):
+            qs = qs.filter(artist__name__icontains=filters['artist'])
+        if search := filters.get('search'):
+            qs = qs.filter(
+                Q(title__icontains=search) |
+                Q(artist__name__icontains=search)
+            )
+        return qs
 
     def retrieve(self, pk):
         return get_object_or_404(Album, pk=pk)
@@ -87,8 +108,15 @@ class AlbumRepository:
 
 
 class ArtistRepository:
-    def list(self):
-        return Artist.objects.all()
+    def list(self, filters=None):
+        qs = Artist.objects.all()
+        if not filters:
+            return qs
+        if filters.get('name'):
+            qs = qs.filter(name__icontains=filters['name'])
+        if search := filters.get('search'):
+            qs = qs.filter(Q(name__icontains=search))
+        return qs
 
     def retrieve(self, pk):
         return get_object_or_404(Artist, pk=pk)

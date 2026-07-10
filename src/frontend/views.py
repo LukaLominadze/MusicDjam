@@ -19,8 +19,10 @@ def profile(request):
         return redirect('login')
     return render(request, 'profile.html')
 
-def music_card_template(request):
-    template_path = os.path.join(settings.BASE_DIR, 'templates', 'music_card.html')
-    with open(template_path, 'r') as f:
-        content = f.read()
-    return HttpResponse(content, content_type='text/html')
+def serve_template(filename):
+    def view(request):
+        template_path = os.path.join(settings.BASE_DIR, 'templates', filename)
+        with open(template_path, 'r') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='text/html')
+    return view

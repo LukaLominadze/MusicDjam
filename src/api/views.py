@@ -255,9 +255,26 @@ class PlaylistViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def list(self, request):
-        playlists = self.repository.list()
+        filters = {
+            k: request.query_params.get(k)
+            for k in ('title', 'is_public', 'search')
+            if request.query_params.get(k)
+        }
+        if 'is_public' in filters:
+            filters['is_public'] = filters['is_public'].lower() == 'true'
+        playlists = self.repository.list(filters)
+        total = playlists.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = 30
+        offset = (page - 1) * page_size
+        playlists = playlists[offset:offset + page_size]
         serializer = self.get_serializer(playlists, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'results': serializer.data,
+            'total': total,
+            'page': page,
+            'page_size': page_size,
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
         playlist = self.repository.retrieve(pk)
@@ -347,9 +364,24 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def list(self, request):
-        albums = self.repository.list()
+        filters = {
+            k: request.query_params.get(k)
+            for k in ('title', 'artist', 'search')
+            if request.query_params.get(k)
+        }
+        albums = self.repository.list(filters)
+        total = albums.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = 30
+        offset = (page - 1) * page_size
+        albums = albums[offset:offset + page_size]
         serializer = self.get_serializer(albums, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'results': serializer.data,
+            'total': total,
+            'page': page,
+            'page_size': page_size,
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
         album = self.repository.retrieve(pk)
@@ -376,6 +408,53 @@ class AlbumViewSet(viewsets.ModelViewSet):
         self.repository.destroy(album)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['get'], url_path='download-cover')
+    def download_cover(self, request, pk=None):
+        album = self.repository.retrieve(pk)
+        service = FileMetadataService()
+        download_url = service.get_download_url(album.cover)
+
+        if download_url is None:
+            return Response({'error': 'No cover image available'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'download_url': download_url}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['put'], url_path='upload-cover')
+    def upload_cover(self, request, pk=None):
+        album = self.repository.retrieve(pk)
+        content_type = request.data.get('file_type', 'undefined')
+
+        if content_type not in ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/tiff', 'image/bmp', 'image/svg+xml']:
+            return Response({"error": "Unsupported or invalid file type provided"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        service = FileMetadataService()
+        metadata = service.get_or_create_metadata(album.cover, content_type)
+        album.cover = metadata
+        album.save()
+
+        try:
+            result = service.initiate_upload(metadata)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['put'], url_path='complete-upload-cover')
+    def complete_upload_cover(self, request, pk=None):
+        album = self.repository.retrieve(pk)
+        fs_id = request.data.get('fs_id')
+
+        if not fs_id:
+            return Response({'error': 'fs_id required!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if album.cover and album.cover.fs_id == fs_id:
+            return Response({'detail': 'Cover image synchronized'}, status=status.HTTP_200_OK)
+
+        service = FileMetadataService()
+        service.complete_upload(album.cover, fs_id)
+
+        return Response({'detail': 'Cover image synchronized'}, status=status.HTTP_200_OK)
+
 
 class ArtistViewSet(viewsets.ModelViewSet):
     queryset = Artist.objects.all()
@@ -388,9 +467,24 @@ class ArtistViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def list(self, request):
-        artists = self.repository.list()
+        filters = {
+            k: request.query_params.get(k)
+            for k in ('name', 'search')
+            if request.query_params.get(k)
+        }
+        artists = self.repository.list(filters)
+        total = artists.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = 30
+        offset = (page - 1) * page_size
+        artists = artists[offset:offset + page_size]
         serializer = self.get_serializer(artists, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'results': serializer.data,
+            'total': total,
+            'page': page,
+            'page_size': page_size,
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
         artist = self.repository.retrieve(pk)

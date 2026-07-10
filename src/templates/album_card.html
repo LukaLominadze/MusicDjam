@@ -1,0 +1,19 @@
+<div class="music-card" data-album-id="{{id}}">
+    <div class="music-card-inner">
+        <div class="music-card-cover">
+            <img src="{{cover_url}}" alt="Cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="music-card-cover-fallback" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="var(--text-muted)" viewBox="0 0 16 16">
+                    <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2 2.5.895 2.5 2m9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2"/>
+                    <path fill-rule="evenodd" d="M14 11V2h1v11zM1.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 1 0V2.5A.5.5 0 0 0 1.5 2m13-1a.5.5 0 0 0-.5-.5H14v11h.5a.5.5 0 0 0 0-1h-13a.5.5 0 0 0 0 1H2V1.5a.5.5 0 0 0-.5-.5z"/>
+                    <path d="M4 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V4zm5-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V2z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="music-card-info">
+            <div class="music-card-title">{{title}}</div>
+            <div class="music-card-artist">{{artist_name}}</div>
+            <div class="music-card-album">Album</div>
+        </div>
+    </div>
+</div>

@@ -30,6 +30,12 @@ class AlbumSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'artist', 'cover']
         read_only_fields = ['id']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.artist_id:
+            data['artist'] = {'id': instance.artist_id, 'name': instance.artist.name}
+        return data
+
 
 class MusicSerializer(serializers.ModelSerializer):
     music_file = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
@@ -54,11 +60,15 @@ class MusicSerializer(serializers.ModelSerializer):
 
 class PlaylistSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    song_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Playlist
-        fields = ['id', 'title', 'is_public', 'cover', 'owner', 'songs']
+        fields = ['id', 'title', 'is_public', 'cover', 'owner', 'songs', 'song_count']
         read_only_fields = ['id']
+
+    def get_song_count(self, obj):
+        return obj.songs.count()
 
 
 class ArtistSerializer(serializers.ModelSerializer):
