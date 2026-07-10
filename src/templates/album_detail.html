@@ -3,6 +3,7 @@
 {% block title %}Album - Earpiece{% endblock %}
 
 {% block head %}
+{% include 'shared_music_styles.html' %}
 <style>
     .detail-container {
         max-width: 900px;
@@ -146,7 +147,7 @@ async function loadEntity() {
         const artistName = entityData.artist ? entityData.artist.name : 'Unknown Artist';
         document.getElementById('detailArtist').textContent = artistName;
 
-        if (entityData.cover) {
+        if (entityData.cover_has_file) {
             const coverResp = await fetch(`/api/album/${entityId}/download-cover/`, { credentials: 'same-origin' });
             if (coverResp.ok) {
                 const data = await coverResp.json();
@@ -154,7 +155,7 @@ async function loadEntity() {
                     document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="Cover">`;
                 }
             }
-        } else if (entityData.artist && entityData.artist.id) {
+        } else if (entityData.artist && entityData.artist.id && entityData.artist.cover_has_file) {
             const coverResp = await fetch(`/api/artist/${entityData.artist.id}/download-cover/`, { credentials: 'same-origin' });
             if (coverResp.ok) {
                 const data = await coverResp.json();
@@ -226,7 +227,7 @@ function renderCards(items) {
         const card = temp.firstElementChild;
         card.style.animationDelay = (i * 0.03) + 's';
 
-        if (m.artist && m.artist.id) fetchCover(m.artist.id, card);
+        if (m.artist && m.artist.id && m.artist.cover_has_file) fetchCover(m.artist.id, card);
 
         if (currentPlayingId === m.id) {
             card.classList.add('playing');

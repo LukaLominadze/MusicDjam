@@ -24,11 +24,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class AlbumSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    cover_has_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Album
-        fields = ['id', 'title', 'artist', 'cover']
+        fields = ['id', 'title', 'artist', 'cover', 'cover_has_file']
         read_only_fields = ['id']
+
+    def get_cover_has_file(self, obj):
+        return obj.cover is not None and obj.cover.fs_id is not None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -52,7 +56,11 @@ class MusicSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.artist_id:
-            data['artist'] = {'id': instance.artist_id, 'name': instance.artist.name}
+            data['artist'] = {
+                'id': instance.artist_id,
+                'name': instance.artist.name,
+                'cover_has_file': instance.artist.cover is not None and instance.artist.cover.fs_id is not None,
+            }
         if instance.album_id:
             data['album'] = {'id': instance.album_id, 'title': instance.album.title}
         return data
@@ -61,20 +69,28 @@ class MusicSerializer(serializers.ModelSerializer):
 class PlaylistSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     song_count = serializers.SerializerMethodField()
+    cover_has_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Playlist
-        fields = ['id', 'title', 'is_public', 'cover', 'owner', 'songs', 'song_count']
+        fields = ['id', 'title', 'is_public', 'cover', 'owner', 'songs', 'song_count', 'cover_has_file']
         read_only_fields = ['id']
 
     def get_song_count(self, obj):
         return obj.songs.count()
 
+    def get_cover_has_file(self, obj):
+        return obj.cover is not None and obj.cover.fs_id is not None
+
 
 class ArtistSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    cover_has_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Artist
-        fields = ['id', 'name', 'cover']
+        fields = ['id', 'name', 'cover', 'cover_has_file']
         read_only_fields = ['id']
+
+    def get_cover_has_file(self, obj):
+        return obj.cover is not None and obj.cover.fs_id is not None

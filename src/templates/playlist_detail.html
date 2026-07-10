@@ -3,6 +3,7 @@
 {% block title %}Playlist - Earpiece{% endblock %}
 
 {% block head %}
+{% include 'shared_music_styles.html' %}
 <style>
     .detail-container {
         max-width: 900px;
@@ -144,7 +145,7 @@ async function loadEntity() {
         const visibility = entityData.is_public ? 'Public Playlist' : 'Private Playlist';
         document.getElementById('detailMeta').textContent = visibility;
 
-        if (entityData.cover) {
+        if (entityData.cover_has_file) {
             const coverResp = await fetch(`/api/playlist/${entityId}/download-cover/`, { credentials: 'same-origin' });
             if (coverResp.ok) {
                 const data = await coverResp.json();
@@ -216,7 +217,7 @@ function renderCards(items) {
         const card = temp.firstElementChild;
         card.style.animationDelay = (i * 0.03) + 's';
 
-        if (m.artist && m.artist.id) fetchCover(m.artist.id, card);
+        if (m.artist && m.artist.id && m.artist.cover_has_file) fetchCover(m.artist.id, card);
 
         if (currentPlayingId === m.id) {
             card.classList.add('playing');
