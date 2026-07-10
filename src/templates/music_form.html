@@ -97,7 +97,7 @@
                     <input type="hidden" id="artistId">
                     <div class="entity-form-search-results" id="artistResults" style="display: none;"></div>
                 </div>
-                <div class="entity-form-hint">Optional. Leave blank for no artist.</div>
+                <div class="entity-form-hint">Type to search. If not found, it will be created automatically.</div>
                 <div class="field-error" id="artistError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -114,7 +114,7 @@
                     <input type="hidden" id="albumId">
                     <div class="entity-form-search-results" id="albumResults" style="display: none;"></div>
                 </div>
-                <div class="entity-form-hint">Optional. Leave blank for no album.</div>
+                <div class="entity-form-hint">Type to search. If not found, it will be created automatically.</div>
                 <div class="field-error" id="albumError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -143,6 +143,7 @@ const csrfToken = '{{ csrf_token }}';
 
 let selectedArtistId = null;
 let selectedAlbumId = null;
+let createdArtistId = null;
 let artistSearchTimeout = null;
 let albumSearchTimeout = null;
 
@@ -239,18 +240,14 @@ function setupAutocomplete(inputId, resultsId, hiddenId, searchUrl, onSelect) {
             if (!resp.ok) throw new Error('Search failed');
             const data = await resp.json();
             const items = data.results || [];
-            renderResults(items);
+            renderResults(items, query);
         } catch (e) {
             results.style.display = 'none';
         }
     }
 
-    function renderResults(items) {
+    function renderResults(items, query) {
         results.innerHTML = '';
-        if (items.length === 0) {
-            results.style.display = 'none';
-            return;
-        }
 
         items.forEach(function(item) {
             const div = document.createElement('div');
@@ -267,16 +264,33 @@ function setupAutocomplete(inputId, resultsId, hiddenId, searchUrl, onSelect) {
             results.appendChild(div);
         });
 
+        if (query && items.length === 0) {
+            const createDiv = document.createElement('div');
+            createDiv.className = 'entity-form-search-item entity-form-search-create';
+            createDiv.textContent = '+ Create "' + query + '"';
+            createDiv.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                hidden.dataset.id = '';
+                hidden.value = '';
+                onSelect(null);
+                results.style.display = 'none';
+            });
+            results.appendChild(createDiv);
+        } else if (items.length === 0) {
+            results.style.display = 'none';
+            return;
+        }
+
         results.style.display = 'block';
     }
 }
 
 setupAutocomplete('artistInput', 'artistResults', 'artistId', '/api/artist/?search=', function(item) {
-    selectedArtistId = item.id;
+    selectedArtistId = item ? item.id : null;
 });
 
 setupAutocomplete('albumInput', 'albumResults', 'albumId', '/api/album/?search=', function(item) {
-    selectedAlbumId = item.id;
+    selectedAlbumId = item ? item.id : null;
 });
 
 async function createArtist(name) {
@@ -329,26 +343,29 @@ async function handleSubmit() {
     submitBtn.textContent = isEditing ? 'Saving...' : 'Adding...';
 
     try {
-        let artistId = selectedArtistId || document.getElementById('artistId').dataset.id || null;
-        let albumId = selectedAlbumId || document.getElementById('albumId').dataset.id || null;
+        let artistId = Number(selectedArtistId) || Number(document.getElementById('artistId').dataset.id) || null;
+        let albumId = Number(selectedAlbumId) || Number(document.getElementById('albumId').dataset.id) || null;
 
         const artistName = document.getElementById('artistInput').value.trim();
         if (artistName && !artistId) {
+            submitBtn.textContent = 'Creating artist...';
             const newArtist = await createArtist(artistName);
-            artistId = newArtist.id;
+            artistId = Number(newArtist.id);
+            createdArtistId = artistId;
         }
 
         const albumTitle = document.getElementById('albumInput').value.trim();
         if (albumTitle && !albumId) {
+            submitBtn.textContent = 'Creating album...';
             const newAlbum = await createAlbum(albumTitle, artistId);
-            albumId = newAlbum.id;
+            albumId = Number(newAlbum.id);
         }
 
         const musicPayload = {
             title: title,
             is_public: document.getElementById('isPublic').checked,
-            artist: artistId ? parseInt(artistId) : null,
-            album: albumId ? parseInt(albumId) : null
+            artist: artistId || null,
+            album: albumId || null
         };
 
         let resultId;
