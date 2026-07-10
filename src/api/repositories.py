@@ -10,9 +10,9 @@ class MusicRepository:
         if not filters:
             return qs
         if filters.get('artist'):
-            qs = qs.filter(artist_id=filters['artist'])
+            qs = qs.filter(artist__name__icontains=filters['artist'])
         if filters.get('album'):
-            qs = qs.filter(album_id=filters['album'])
+            qs = qs.filter(album__title__icontains=filters['album'])
         if filters.get('owner'):
             qs = qs.filter(owner_id=filters['owner'])
         if filters.get('is_public') is not None:

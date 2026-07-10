@@ -25,13 +25,13 @@ class MusicRepositoryFilterTest(TestCase):
         self.assertEqual(result.count(), 3)
 
     def test_filter_by_artist(self):
-        result = self.repo.list({"artist": self.artist_a.id})
+        result = self.repo.list({"artist": "Artist A"})
         self.assertEqual(result.count(), 2)
         self.assertIn(self.track1, result)
         self.assertIn(self.track3, result)
 
     def test_filter_by_album(self):
-        result = self.repo.list({"album": self.album_b.id})
+        result = self.repo.list({"album": "Album B"})
         self.assertEqual(result.count(), 1)
         self.assertIn(self.track2, result)
 
@@ -63,6 +63,6 @@ class MusicRepositoryFilterTest(TestCase):
         self.assertIn(self.track3, result)
 
     def test_combined_filters(self):
-        result = self.repo.list({"artist": self.artist_a.id, "is_public": True})
+        result = self.repo.list({"artist": "Artist A", "is_public": True})
         self.assertEqual(result.count(), 1)
         self.assertIn(self.track1, result)
