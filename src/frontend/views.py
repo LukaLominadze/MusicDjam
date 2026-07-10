@@ -6,7 +6,10 @@ import os
 def explore(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'index.html')
+    return render(request, 'index.html', {
+        'user_id': request.user.id,
+        'is_staff': request.user.is_staff,
+    })
 
 def login(request):
     return render(request, 'login.html')
@@ -27,17 +30,77 @@ def serve_template(filename):
         return HttpResponse(content, content_type='text/html')
     return view
 
+def _entity_context(request):
+    return {
+        'user_id': request.user.id,
+        'is_staff': request.user.is_staff,
+    }
+
 def artist_detail(request, artist_id):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'artist_detail.html', {'artist_id': artist_id})
+    ctx = _entity_context(request)
+    ctx['artist_id'] = artist_id
+    return render(request, 'artist_detail.html', ctx)
 
 def album_detail(request, album_id):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'album_detail.html', {'album_id': album_id})
+    ctx = _entity_context(request)
+    ctx['album_id'] = album_id
+    return render(request, 'album_detail.html', ctx)
 
 def playlist_detail(request, playlist_id):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'playlist_detail.html', {'playlist_id': playlist_id})
+    ctx = _entity_context(request)
+    ctx['playlist_id'] = playlist_id
+    return render(request, 'playlist_detail.html', ctx)
+
+def artist_add(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'artist_form.html', _entity_context(request))
+
+def artist_edit(request, artist_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    ctx = _entity_context(request)
+    ctx['artist_id'] = artist_id
+    return render(request, 'artist_form.html', ctx)
+
+def album_add(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'album_form.html', _entity_context(request))
+
+def album_edit(request, album_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    ctx = _entity_context(request)
+    ctx['album_id'] = album_id
+    return render(request, 'album_form.html', ctx)
+
+def music_add(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'music_form.html', _entity_context(request))
+
+def music_edit(request, music_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    ctx = _entity_context(request)
+    ctx['music_id'] = music_id
+    return render(request, 'music_form.html', ctx)
+
+def playlist_add(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'playlist_form.html', _entity_context(request))
+
+def playlist_edit(request, playlist_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    ctx = _entity_context(request)
+    ctx['playlist_id'] = playlist_id
+    return render(request, 'playlist_form.html', ctx)

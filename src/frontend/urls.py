@@ -1,4 +1,3 @@
-# api/urls.py
 from django.urls import path
 from . import views
 
@@ -14,4 +13,12 @@ urlpatterns = [
     path('artist/<int:artist_id>/', views.artist_detail, name='artist_detail'),
     path('album/<int:album_id>/', views.album_detail, name='album_detail'),
     path('playlist/<int:playlist_id>/', views.playlist_detail, name='playlist_detail'),
+    path('artist/add/', views.artist_add, name='artist_add'),
+    path('artist/<int:artist_id>/edit/', views.artist_edit, name='artist_edit'),
+    path('album/add/', views.album_add, name='album_add'),
+    path('album/<int:album_id>/edit/', views.album_edit, name='album_edit'),
+    path('music/add/', views.music_add, name='music_add'),
+    path('music/<int:music_id>/edit/', views.music_edit, name='music_edit'),
+    path('playlist/add/', views.playlist_add, name='playlist_add'),
+    path('playlist/<int:playlist_id>/edit/', views.playlist_edit, name='playlist_edit'),
 ]

@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if music_id %}Edit Music{% else %}Add Music{% endif %} | Earpiece{% endblock %}
+
+{% block head %}
+{% include 'shared_form_styles.html' %}
+{% include 'shared_music_styles.html' %}
+<style>
+    .entity-form-file-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .entity-form-length-display {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        background: var(--bg-input);
+        border: 1.5px solid rgba(155, 89, 182, 0.2);
+        border-radius: 12px;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .entity-form-length-display.has-value {
+        color: var(--text-primary);
+    }
+
+    .autocomplete-wrapper {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="entity-form-container">
+    <a href="/" class="entity-form-back">&larr; Back to Explore</a>
+
+    <div class="entity-form-card">
+        <div class="entity-form-header">
+            <h1 class="entity-form-title">{% if music_id %}Edit Music{% else %}Add Music{% endif %}</h1>
+        </div>
+
+        <div class="entity-form-error" id="globalError">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+            </svg>
+            <span id="globalErrorText"></span>
+        </div>
+
+        <form id="musicForm" onsubmit="return false;">
+            <div class="entity-form-group">
+                <label for="musicTitle">Title</label>
+                <input type="text" id="musicTitle" placeholder="Enter song title..." required>
+                <div class="field-error" id="titleError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="titleErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label>Music File</label>
+                <label class="entity-form-file-label" for="musicFile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                    </svg>
+                    Choose file
+                </label>
+                <input type="file" id="musicFile" accept="audio/*" style="display: none;">
+                <div class="entity-form-file-name" id="musicFileName">No file selected</div>
+                <div class="field-error" id="fileError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="fileErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label>Length</label>
+                <div class="entity-form-length-display" id="musicLengthDisplay">--:--</div>
+            </div>
+
+            <div class="entity-form-group">
+                <label for="artistInput">Artist</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="artistInput" placeholder="Search or type artist name..." autocomplete="off">
+                    <input type="hidden" id="artistId">
+                    <div class="entity-form-search-results" id="artistResults" style="display: none;"></div>
+                </div>
+                <div class="entity-form-hint">Optional. Leave blank for no artist.</div>
+                <div class="field-error" id="artistError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="artistErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label for="albumInput">Album</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="albumInput" placeholder="Search or type album title..." autocomplete="off">
+                    <input type="hidden" id="albumId">
+                    <div class="entity-form-search-results" id="albumResults" style="display: none;"></div>
+                </div>
+                <div class="entity-form-hint">Optional. Leave blank for no album.</div>
+                <div class="field-error" id="albumError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="albumErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-checkbox">
+                <input type="checkbox" id="isPublic" checked>
+                <label for="isPublic">Public</label>
+            </div>
+
+            <button type="submit" class="entity-form-submit" id="submitBtn" onclick="handleSubmit()">
+                {% if music_id %}Save Changes{% else %}Add Music{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const isEditing = {% if music_id %}true{% else %}false{% endif %};
+const musicId = {% if music_id %}{{ music_id }}{% else %}null{% endif %};
+const csrfToken = '{{ csrf_token }}';
+
+let selectedArtistId = null;
+let selectedAlbumId = null;
+let artistSearchTimeout = null;
+let albumSearchTimeout = null;
+
+function showGlobalError(msg) {
+    const el = document.getElementById('globalError');
+    document.getElementById('globalErrorText').textContent = msg;
+    el.classList.add('is-visible');
+}
+
+function hideGlobalError() {
+    document.getElementById('globalError').classList.remove('is-visible');
+}
+
+function showFieldError(field, msg) {
+    const errorEl = document.getElementById(field + 'Error');
+    const textEl = document.getElementById(field + 'ErrorText');
+    if (errorEl && textEl) {
+        textEl.textContent = msg;
+        errorEl.classList.add('is-visible');
+    }
+    const input = document.getElementById(field === 'title' ? 'musicTitle' : field === 'file' ? 'musicFile' : field);
+    if (input) input.classList.add('has-error');
+}
+
+function hideFieldError(field) {
+    const errorEl = document.getElementById(field + 'Error');
+    if (errorEl) errorEl.classList.remove('is-visible');
+    const input = document.getElementById(field === 'title' ? 'musicTitle' : field === 'file' ? 'musicFile' : field);
+    if (input) input.classList.remove('has-error');
+}
+
+function hideAllErrors() {
+    hideGlobalError();
+    ['title', 'file', 'artist', 'album'].forEach(hideFieldError);
+}
+
+function formatLength(seconds) {
+    if (!seconds || seconds <= 0) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ':' + String(s).padStart(2, '0');
+}
+
+document.getElementById('musicFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    document.getElementById('musicFileName').textContent = file.name;
+
+    const audio = new Audio();
+    audio.src = URL.createObjectURL(file);
+    audio.addEventListener('loadedmetadata', function() {
+        const display = document.getElementById('musicLengthDisplay');
+        display.textContent = formatLength(audio.duration);
+        display.classList.add('has-value');
+        display.dataset.seconds = Math.floor(audio.duration);
+        URL.revokeObjectURL(audio.src);
+    });
+});
+
+function setupAutocomplete(inputId, resultsId, hiddenId, searchUrl, onSelect) {
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+    const hidden = document.getElementById(hiddenId);
+
+    input.addEventListener('focus', function() {
+        const query = input.value.trim();
+        if (query.length > 0) fetchResults(query);
+    });
+
+    input.addEventListener('input', function() {
+        hidden.value = '';
+        hidden.dataset.id = '';
+        if (inputId === 'artistInput') selectedArtistId = null;
+        if (inputId === 'albumInput') selectedAlbumId = null;
+
+        clearTimeout(inputId === 'artistInput' ? artistSearchTimeout : albumSearchTimeout);
+        const timeout = setTimeout(function() {
+            const q = input.value.trim();
+            if (q.length > 0) fetchResults(q);
+            else results.style.display = 'none';
+        }, 300);
+        if (inputId === 'artistInput') artistSearchTimeout = timeout;
+        else albumSearchTimeout = timeout;
+    });
+
+    input.addEventListener('blur', function() {
+        setTimeout(function() { results.style.display = 'none'; }, 200);
+    });
+
+    async function fetchResults(query) {
+        try {
+            const resp = await fetch(searchUrl + encodeURIComponent(query), { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('Search failed');
+            const data = await resp.json();
+            const items = data.results || [];
+            renderResults(items);
+        } catch (e) {
+            results.style.display = 'none';
+        }
+    }
+
+    function renderResults(items) {
+        results.innerHTML = '';
+        if (items.length === 0) {
+            results.style.display = 'none';
+            return;
+        }
+
+        items.forEach(function(item) {
+            const div = document.createElement('div');
+            div.className = 'entity-form-search-item';
+            div.textContent = item.name || item.title;
+            div.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                input.value = item.name || item.title;
+                hidden.value = item.id;
+                hidden.dataset.id = item.id;
+                onSelect(item);
+                results.style.display = 'none';
+            });
+            results.appendChild(div);
+        });
+
+        results.style.display = 'block';
+    }
+}
+
+setupAutocomplete('artistInput', 'artistResults', 'artistId', '/api/artist/?search=', function(item) {
+    selectedArtistId = item.id;
+});
+
+setupAutocomplete('albumInput', 'albumResults', 'albumId', '/api/album/?search=', function(item) {
+    selectedAlbumId = item.id;
+});
+
+async function createArtist(name) {
+    const resp = await fetch('/api/artist/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ name: name })
+    });
+    if (!resp.ok) {
+        const data = await resp.json();
+        throw new Error(data.detail || data.name?.[0] || 'Failed to create artist');
+    }
+    return await resp.json();
+}
+
+async function createAlbum(title, artistId) {
+    const payload = { title: title };
+    if (artistId) payload.artist = artistId;
+    const resp = await fetch('/api/album/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+        const data = await resp.json();
+        throw new Error(data.detail || data.title?.[0] || 'Failed to create album');
+    }
+    return await resp.json();
+}
+
+async function handleSubmit() {
+    hideAllErrors();
+
+    const title = document.getElementById('musicTitle').value.trim();
+    if (!title) {
+        showFieldError('title', 'Title is required');
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = isEditing ? 'Saving...' : 'Adding...';
+
+    try {
+        let artistId = selectedArtistId || document.getElementById('artistId').dataset.id || null;
+        let albumId = selectedAlbumId || document.getElementById('albumId').dataset.id || null;
+
+        const artistName = document.getElementById('artistInput').value.trim();
+        if (artistName && !artistId) {
+            const newArtist = await createArtist(artistName);
+            artistId = newArtist.id;
+        }
+
+        const albumTitle = document.getElementById('albumInput').value.trim();
+        if (albumTitle && !albumId) {
+            const newAlbum = await createAlbum(albumTitle, artistId);
+            albumId = newAlbum.id;
+        }
+
+        const musicPayload = {
+            title: title,
+            is_public: document.getElementById('isPublic').checked,
+            artist: artistId ? parseInt(artistId) : null,
+            album: albumId ? parseInt(albumId) : null
+        };
+
+        let resultId;
+        if (isEditing) {
+            const resp = await fetch('/api/music/' + musicId + '/', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(musicPayload)
+            });
+            if (!resp.ok) {
+                const data = await resp.json();
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+            resultId = musicId;
+        } else {
+            const resp = await fetch('/api/music/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(musicPayload)
+            });
+            if (!resp.ok) {
+                const data = await resp.json();
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+            const result = await resp.json();
+            resultId = result.id;
+        }
+
+        const fileInput = document.getElementById('musicFile');
+        const file = fileInput.files[0];
+        if (file) {
+            submitBtn.textContent = 'Uploading file...';
+
+            const uploadResp = await fetch('/api/music/' + resultId + '/upload/', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ file_type: file.type })
+            });
+            if (!uploadResp.ok) {
+                const data = await uploadResp.json();
+                throw new Error(data.error || 'Failed to initiate upload');
+            }
+            const uploadData = await uploadResp.json();
+
+            await fetch(uploadData.upload_url, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file
+            });
+
+            const completeResp = await fetch('/api/music/' + resultId + '/complete-upload/', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ fs_id: uploadData.fs_id })
+            });
+            if (!completeResp.ok) {
+                const data = await completeResp.json();
+                throw new Error(data.error || 'Failed to complete upload');
+            }
+        }
+
+        window.location.href = '/';
+    } catch (e) {
+        showGlobalError(e.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEditing ? 'Save Changes' : 'Add Music';
+    }
+}
+
+if (isEditing && musicId) {
+    (async function() {
+        try {
+            const resp = await fetch('/api/music/' + musicId + '/', { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('Failed to load music data');
+            const data = await resp.json();
+
+            document.getElementById('musicTitle').value = data.title || '';
+
+            if (data.artist && data.artist.id) {
+                document.getElementById('artistInput').value = data.artist.name;
+                document.getElementById('artistId').dataset.id = data.artist.id;
+                selectedArtistId = data.artist.id;
+            }
+
+            if (data.album && data.album.id) {
+                document.getElementById('albumInput').value = data.album.title;
+                document.getElementById('albumId').dataset.id = data.album.id;
+                selectedAlbumId = data.album.id;
+            }
+
+            document.getElementById('isPublic').checked = data.is_public;
+
+            if (data.length && data.length > 0) {
+                const display = document.getElementById('musicLengthDisplay');
+                display.textContent = formatLength(data.length);
+                display.classList.add('has-value');
+                display.dataset.seconds = data.length;
+            }
+        } catch (e) {
+            showGlobalError('Failed to load music data: ' + e.message);
+        }
+    })();
+}
+</script>
+{% endblock %}

@@ -77,6 +77,18 @@
         color: var(--text-muted);
         margin-bottom: 1rem;
     }
+
+    .detail-actions {
+        display: flex;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+    }
+
+    .detail-actions .card-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+    }
 </style>
 {% endblock %}
 
@@ -100,6 +112,7 @@
         <div class="detail-info">
             <h1 id="detailName">-</h1>
             <div class="detail-subtitle">Artist</div>
+            <div class="detail-actions" id="detailActions"></div>
         </div>
     </div>
 
@@ -128,6 +141,8 @@ let audioCache = new Map();
 let currentPlayingId = null;
 let isPlaying = false;
 let entityData = null;
+const currentUserId = {{ user_id|safe }};
+const currentUserIsStaff = {{ is_staff|yesno:"true,false" }};
 
 const audio = document.getElementById('audioPlayer');
 const entityId = {{ artist_id }};
@@ -154,9 +169,33 @@ async function loadEntity() {
                 }
             }
         }
+
+        if (currentUserIsStaff) {
+            document.getElementById('detailActions').innerHTML = `
+                <a href="/artist/${entityId}/edit/" class="card-action-btn" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
+                    </svg>
+                </a>
+                <button class="card-action-btn delete" onclick="deleteArtist()" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                </button>`;
+        }
     } catch (err) {
         document.getElementById('detailName').textContent = 'Not found';
     }
+}
+
+async function deleteArtist() {
+    if (!confirm('Are you sure you want to delete this artist?')) return;
+    try {
+        const resp = await fetch(`/api/artist/${entityId}/`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Delete failed');
+        window.location.href = '/';
+    } catch (e) { alert('Failed to delete: ' + e.message); }
 }
 
 async function fetchSongs() {

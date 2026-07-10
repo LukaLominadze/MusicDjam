@@ -541,6 +541,8 @@ let currentView = 'music';
 let audioCache = new Map();
 let currentPlayingId = null;
 let isPlaying = false;
+const currentUserId = {{ user_id|safe }};
+const currentUserIsStaff = {{ is_staff|yesno:"true,false" }};
 
 const templates = {};
 
@@ -707,6 +709,49 @@ async function fetchAndRender() {
     }
 }
 
+function canEditDelete(item, view) {
+    if (currentUserIsStaff) return true;
+    if (view === 'music' || view === 'playlists') {
+        return item.owner && item.owner == currentUserId;
+    }
+    return false;
+}
+
+function buildActionBtns(item, view) {
+    if (!canEditDelete(item, view)) return { edit: '', del: '' };
+    const typeMap = { music: 'music', artists: 'artist', albums: 'album', playlists: 'playlist' };
+    const t = typeMap[view];
+    const id = item.id;
+    const editUrl = `/${t}/${id}/edit/`;
+    return {
+        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='${editUrl}'" title="Edit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
+            </svg>
+        </button>`,
+        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteEntity('${t}', ${id})" title="Delete">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
+            </svg>
+        </button>`
+    };
+}
+
+async function deleteEntity(type, id) {
+    if (!confirm('Are you sure you want to delete this ' + type + '?')) return;
+    try {
+        const resp = await fetch(`/api/${type}/${id}/`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        });
+        if (!resp.ok) throw new Error('Delete failed');
+        await fetchAndRender();
+    } catch (e) {
+        alert('Failed to delete: ' + e.message);
+    }
+}
+
 function renderCards(items) {
     const container = document.getElementById('musicContainer');
     const grid = document.createElement('div');
@@ -715,6 +760,7 @@ function renderCards(items) {
 
     items.forEach((item, i) => {
         let cardHtml;
+        const actions = buildActionBtns(item, currentView);
 
         if (currentView === 'music') {
             const artistName = item.artist ? item.artist.name : 'Unknown Artist';
@@ -729,26 +775,34 @@ function renderCards(items) {
                 .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
                 .replace(/\{\{length_formatted\}\}/g, lengthStr)
                 .replace(/\{\{play_disabled\}\}/g, playDisabled)
-                .replace(/\{\{fs_id\}\}/g, item.music_file || '');
+                .replace(/\{\{fs_id\}\}/g, item.music_file || '')
+                .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
 
         } else if (currentView === 'artists') {
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{name\}\}/g, escapeHtml(item.name || 'Unknown'));
+                .replace(/\{\{name\}\}/g, escapeHtml(item.name || 'Unknown'))
+                .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
 
         } else if (currentView === 'albums') {
             const artistName = item.artist ? item.artist.name : 'Unknown Artist';
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
                 .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
-                .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName));
+                .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
+                .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
 
         } else if (currentView === 'playlists') {
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
                 .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
                 .replace(/\{\{song_count\}\}/g, item.song_count || 0)
-                .replace(/\{\{visibility\}\}/g, item.is_public ? 'Public' : 'Private');
+                .replace(/\{\{visibility\}\}/g, item.is_public ? 'Public' : 'Private')
+                .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
         }
 
         const temp = document.createElement('div');

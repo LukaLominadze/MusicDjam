@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% block title %}{% if album_id %}Edit Album{% else %}Add Album{% endif %} | Earpiece{% endblock %}
+
+{% block head %}
+{% include 'shared_form_styles.html' %}
+{% include 'shared_music_styles.html' %}
+<style>
+    .artist-input-wrapper {
+        position: relative;
+    }
+
+    .artist-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        margin-top: 0.25rem;
+    }
+
+    .artist-dropdown.is-visible {
+        display: block;
+    }
+
+    .artist-dropdown-item {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .artist-dropdown-item:hover {
+        background: rgba(233, 30, 140, 0.1);
+    }
+
+    .artist-dropdown-item.add-new {
+        color: var(--accent-gold);
+        font-weight: 600;
+        border-top: 1px solid rgba(155, 89, 182, 0.15);
+    }
+
+    .artist-dropdown-item.add-new:hover {
+        background: rgba(245, 166, 35, 0.1);
+    }
+
+    .artist-selected-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        background: rgba(155, 89, 182, 0.15);
+        border: 1px solid rgba(155, 89, 182, 0.25);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        margin-top: 0.5rem;
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .artist-selected-tag .tag-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border: none;
+        background: rgba(255, 50, 50, 0.2);
+        color: #ffb3b3;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .artist-selected-tag .tag-remove:hover {
+        background: rgba(255, 50, 50, 0.4);
+        color: #fff;
+    }
+
+    .artist-status {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        opacity: 0.7;
+        margin-top: 0.3rem;
+    }
+
+    .artist-status.is-new {
+        color: var(--accent-gold);
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="entity-form-container">
+    <a href="/" class="entity-form-back">&larr; Back to Explore</a>
+
+    <div class="entity-form-card">
+        <div class="entity-form-header">
+            <h1 class="entity-form-title">{% if album_id %}Edit Album{% else %}Add Album{% endif %}</h1>
+        </div>
+
+        <div id="globalError" class="entity-form-error"></div>
+
+        <form id="albumForm" novalidate>
+            <div class="entity-form-group">
+                <label for="albumTitle">Title</label>
+                <input type="text" id="albumTitle" name="title" placeholder="Album title" required>
+                <div id="titleError" class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="titleErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label for="albumArtist">Artist</label>
+                <div class="artist-input-wrapper">
+                    <input type="text" id="albumArtist" name="artist" placeholder="Search for an artist...">
+                    <div id="artistDropdown" class="artist-dropdown"></div>
+                </div>
+                <div id="artistSelected" style="display:none;" class="artist-selected-tag">
+                    <span id="artistSelectedName"></span>
+                    <button type="button" class="tag-remove" id="artistRemoveBtn">&times;</button>
+                </div>
+                <div id="artistStatus" class="artist-status"></div>
+                <div id="artistError" class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="artistErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label>Cover Image</label>
+                <div class="entity-form-cover-upload" id="coverUploadArea">
+                    <svg id="coverPlaceholder" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="var(--text-muted)" viewBox="0 0 16 16">
+                        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                        <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                    </svg>
+                    <img id="coverPreview" style="display:none;" alt="Cover preview">
+                </div>
+                <input type="file" id="coverFileInput" accept="image/*" style="display:none;">
+            </div>
+
+            <button type="submit" class="entity-form-submit" id="submitBtn">
+                {% if album_id %}Save Changes{% else %}Add Album{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function() {
+    const ALBUM_ID = {{ album_id|default:"null" }};
+    const form = document.getElementById('albumForm');
+    const titleInput = document.getElementById('albumTitle');
+    const artistInput = document.getElementById('albumArtist');
+    const artistDropdown = document.getElementById('artistDropdown');
+    const artistSelected = document.getElementById('artistSelected');
+    const artistSelectedName = document.getElementById('artistSelectedName');
+    const artistRemoveBtn = document.getElementById('artistRemoveBtn');
+    const artistStatus = document.getElementById('artistStatus');
+    const coverUploadArea = document.getElementById('coverUploadArea');
+    const coverFileInput = document.getElementById('coverFileInput');
+    const coverPreview = document.getElementById('coverPreview');
+    const coverPlaceholder = document.getElementById('coverPlaceholder');
+    const submitBtn = document.getElementById('submitBtn');
+    const globalError = document.getElementById('globalError');
+
+    let selectedArtistId = null;
+    let isNewArtist = false;
+    let newArtistName = '';
+    let selectedCoverFile = null;
+    let searchTimeout = null;
+
+    if (ALBUM_ID) {
+        fetchAlbumData();
+    }
+
+    async function fetchAlbumData() {
+        try {
+            const resp = await fetch(`/api/album/${ALBUM_ID}/`, { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('Failed to load album data');
+            const data = await resp.json();
+
+            titleInput.value = data.title || '';
+
+            if (data.artist && data.artist.id) {
+                selectArtist(data.artist.id, data.artist.name);
+            }
+
+            if (data.cover_has_file) {
+                try {
+                    const coverResp = await fetch(`/api/album/${ALBUM_ID}/download-cover/`, { credentials: 'same-origin' });
+                    if (coverResp.ok) {
+                        const coverData = await coverResp.json();
+                        coverPreview.src = coverData.download_url;
+                        coverPreview.style.display = 'block';
+                        coverPlaceholder.style.display = 'none';
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {
+            showGlobalError('Failed to load album data: ' + e.message);
+        }
+    }
+
+    function selectArtist(id, name) {
+        selectedArtistId = id;
+        isNewArtist = false;
+        newArtistName = '';
+        artistSelectedName.textContent = name;
+        artistSelected.style.display = 'inline-flex';
+        artistInput.value = '';
+        artistInput.placeholder = name;
+        artistStatus.textContent = '';
+        artistStatus.className = 'artist-status';
+        hideArtistError();
+    }
+
+    function selectNewArtist(name) {
+        selectedArtistId = null;
+        isNewArtist = true;
+        newArtistName = name;
+        artistSelectedName.textContent = name;
+        artistSelected.style.display = 'inline-flex';
+        artistInput.value = '';
+        artistInput.placeholder = name;
+        artistStatus.textContent = 'New artist (will be created on save)';
+        artistStatus.className = 'artist-status is-new';
+        hideArtistError();
+    }
+
+    artistRemoveBtn.addEventListener('click', function() {
+        selectedArtistId = null;
+        isNewArtist = false;
+        newArtistName = '';
+        artistSelected.style.display = 'none';
+        artistInput.placeholder = 'Search for an artist...';
+        artistStatus.textContent = '';
+        artistStatus.className = 'artist-status';
+    });
+
+    artistInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = artistInput.value.trim();
+
+        if (selectedArtistId || isNewArtist) return;
+
+        if (query.length < 1) {
+            artistDropdown.classList.remove('is-visible');
+            artistDropdown.innerHTML = '';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => searchArtists(query), 250);
+    });
+
+    artistInput.addEventListener('focus', function() {
+        if (!artistInput.value.trim() && !selectedArtistId && !isNewArtist) return;
+        if (!artistInput.value.trim()) return;
+        searchArtists(artistInput.value.trim());
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.artist-input-wrapper') && !e.target.closest('.artist-dropdown')) {
+            artistDropdown.classList.remove('is-visible');
+        }
+    });
+
+    async function searchArtists(query) {
+        try {
+            const resp = await fetch(`/api/artist/?search=${encodeURIComponent(query)}`, { credentials: 'same-origin' });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            const artists = data.results || [];
+            renderArtistDropdown(artists, query);
+        } catch (e) {
+            artistDropdown.classList.remove('is-visible');
+        }
+    }
+
+    function renderArtistDropdown(artists, query) {
+        artistDropdown.innerHTML = '';
+
+        artists.forEach(function(artist) {
+            const item = document.createElement('div');
+            item.className = 'artist-dropdown-item';
+            item.textContent = artist.name;
+            item.addEventListener('click', function() {
+                selectArtist(artist.id, artist.name);
+                artistDropdown.classList.remove('is-visible');
+            });
+            artistDropdown.appendChild(item);
+        });
+
+        const hasExactMatch = artists.some(function(a) {
+            return a.name.toLowerCase() === query.toLowerCase();
+        });
+
+        if (!hasExactMatch && query.length > 0) {
+            const addItem = document.createElement('div');
+            addItem.className = 'artist-dropdown-item add-new';
+            addItem.textContent = 'Add new: ' + query;
+            addItem.addEventListener('click', function() {
+                selectNewArtist(query);
+                artistDropdown.classList.remove('is-visible');
+            });
+            artistDropdown.appendChild(addItem);
+        }
+
+        artistDropdown.classList.add('is-visible');
+    }
+
+    coverUploadArea.addEventListener('click', function() {
+        coverFileInput.click();
+    });
+
+    coverFileInput.addEventListener('change', function() {
+        const file = coverFileInput.files[0];
+        if (!file) return;
+
+        selectedCoverFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            coverPreview.src = e.target.result;
+            coverPreview.style.display = 'block';
+            coverPlaceholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideErrors();
+
+        const title = titleInput.value.trim();
+        let valid = true;
+
+        if (!title) {
+            showFieldError('titleError', 'titleErrorText', 'Title is required');
+            titleInput.classList.add('has-error');
+            valid = false;
+        }
+
+        if (!selectedArtistId && !isNewArtist) {
+            showFieldError('artistError', 'artistErrorText', 'Artist is required');
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = ALBUM_ID ? 'Saving...' : 'Adding...';
+
+        try {
+            let artistId = selectedArtistId;
+
+            if (isNewArtist) {
+                const artistResp = await fetch('/api/artist/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newArtistName })
+                });
+                if (!artistResp.ok) {
+                    const err = await artistResp.json();
+                    throw new Error(err.detail || err.error || 'Failed to create artist');
+                }
+                const artistData = await artistResp.json();
+                artistId = artistData.id;
+            }
+
+            const albumPayload = { title: title, artist: artistId };
+            let albumResp;
+
+            if (ALBUM_ID) {
+                albumResp = await fetch(`/api/album/${ALBUM_ID}/`, {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(albumPayload)
+                });
+            } else {
+                albumResp = await fetch('/api/album/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(albumPayload)
+                });
+            }
+
+            if (!albumResp.ok) {
+                const err = await albumResp.json();
+                const msg = err.detail || err.title?.[0] || err.artist?.[0] || 'Failed to save album';
+                throw new Error(msg);
+            }
+
+            const albumData = await albumResp.json();
+            const albumId = albumData.id;
+
+            if (selectedCoverFile) {
+                await uploadCover(albumId, selectedCoverFile);
+            }
+
+            window.location.href = `/album/${albumId}/`;
+        } catch (e) {
+            showGlobalError(e.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = ALBUM_ID ? 'Save Changes' : 'Add Album';
+        }
+    });
+
+    async function uploadCover(albumId, file) {
+        const putResp = await fetch(`/api/album/${albumId}/upload-cover/`, {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_type: file.type })
+        });
+        if (!putResp.ok) {
+            const err = await putResp.json();
+            throw new Error(err.error || 'Failed to initiate cover upload');
+        }
+        const putData = await putResp.json();
+
+        const uploadResp = await fetch(putData.upload_url, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type },
+            body: file
+        });
+        if (!uploadResp.ok) throw new Error('Failed to upload cover file');
+
+        const completeResp = await fetch(`/api/album/${albumId}/complete-upload-cover/`, {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fs_id: putData.fs_id })
+        });
+        if (!completeResp.ok) throw new Error('Failed to finalize cover upload');
+    }
+
+    function showGlobalError(msg) {
+        globalError.textContent = msg;
+        globalError.classList.add('is-visible');
+    }
+
+    function showFieldError(containerId, textId, msg) {
+        const container = document.getElementById(containerId);
+        const text = document.getElementById(textId);
+        text.textContent = msg;
+        container.classList.add('is-visible');
+    }
+
+    function hideErrors() {
+        globalError.classList.remove('is-visible');
+        document.querySelectorAll('.field-error').forEach(function(el) {
+            el.classList.remove('is-visible');
+        });
+        document.querySelectorAll('.has-error').forEach(function(el) {
+            el.classList.remove('has-error');
+        });
+    }
+
+    function hideArtistError() {
+        document.getElementById('artistError').classList.remove('is-visible');
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if playlist_id %}Edit Playlist{% else %}Add Playlist{% endif %} | Earpiece{% endblock %}
+
+{% block head %}
+{% include 'shared_form_styles.html' %}
+{% include 'shared_music_styles.html' %}
+<style>
+    .cover-upload-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    .song-search-wrapper {
+        position: relative;
+    }
+
+    .entity-form-search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        margin-top: 0.25rem;
+    }
+
+    .entity-form-search-results:empty {
+        display: none;
+    }
+
+    .entity-form-search-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        transition: background 0.15s ease;
+    }
+
+    .entity-form-search-item:hover {
+        background: rgba(233, 30, 140, 0.1);
+    }
+
+    .entity-form-search-item-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .entity-form-search-item-add {
+        flex-shrink: 0;
+        background: rgba(155, 89, 182, 0.2);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 0.25rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .entity-form-search-item-add:hover {
+        background: rgba(233, 30, 140, 0.25);
+        border-color: var(--accent-pink);
+    }
+
+    .songs-section-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 0.4rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="entity-form-container">
+    <a href="/" class="entity-form-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+        </svg>
+        Back to Explore
+    </a>
+
+    <div class="entity-form-card">
+        <h1 class="entity-form-title" id="formTitle">{% if playlist_id %}Edit Playlist{% else %}Add Playlist{% endif %}</h1>
+
+        <div class="entity-form-error" id="globalError">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+            </svg>
+            <span id="globalErrorText"></span>
+        </div>
+
+        <form id="playlistForm" onsubmit="handleSubmit(event)">
+            <div class="entity-form-group">
+                <label for="playlistTitle">Title</label>
+                <input type="text" id="playlistTitle" name="title" placeholder="Playlist title" required autocomplete="off">
+                <div class="field-error" id="titleError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="titleErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label>Cover Image</label>
+                <div class="entity-form-cover-upload" id="coverUpload" onclick="document.getElementById('coverInput').click()">
+                    <div class="cover-upload-icon" id="coverPlaceholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                        </svg>
+                        <span>Add Cover</span>
+                    </div>
+                </div>
+                <input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverSelect(event)">
+                <div class="entity-form-file-name" id="coverFileName"></div>
+            </div>
+
+            <div class="entity-form-checkbox">
+                <input type="checkbox" id="isPublic" name="is_public">
+                <label for="isPublic">Public</label>
+            </div>
+
+            <div class="entity-form-group">
+                <span class="songs-section-label">Songs</span>
+                <div class="song-search-wrapper">
+                    <input type="text" id="songSearch" placeholder="Search for songs..." autocomplete="off">
+                    <div class="entity-form-search-results" id="searchResults"></div>
+                </div>
+                <div class="entity-form-tags" id="selectedSongs"></div>
+            </div>
+
+            <button type="submit" class="entity-form-submit" id="submitBtn">{% if playlist_id %}Save Changes{% else %}Add Playlist{% endif %}</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const playlistId = {{ playlist_id|default:"null" }};
+const userId = {{ user_id }};
+const isStaff = {{ is_staff|yesno:"true,false" }};
+
+const titleInput = document.getElementById('playlistTitle');
+const isPublicInput = document.getElementById('isPublic');
+const coverInput = document.getElementById('coverInput');
+const coverUpload = document.getElementById('coverUpload');
+const coverPlaceholder = document.getElementById('coverPlaceholder');
+const coverFileName = document.getElementById('coverFileName');
+const songSearchInput = document.getElementById('songSearch');
+const searchResults = document.getElementById('searchResults');
+const selectedSongsContainer = document.getElementById('selectedSongs');
+const submitBtn = document.getElementById('submitBtn');
+const globalError = document.getElementById('globalError');
+const globalErrorText = document.getElementById('globalErrorText');
+
+let selectedSongs = [];
+let selectedFile = null;
+let existingCoverUrl = null;
+let searchTimeout = null;
+
+if (playlistId) {
+    document.title = 'Edit Playlist | Earpiece';
+    loadPlaylist();
+}
+
+function showCoverPreview(src) {
+    coverPlaceholder.style.display = 'none';
+    const existing = coverUpload.querySelector('img');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.src = src;
+    coverUpload.appendChild(img);
+}
+
+function handleCoverSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    selectedFile = file;
+    coverFileName.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        showCoverPreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearFieldError(field) {
+    field.classList.remove('has-error');
+    const errorEl = document.getElementById(field.id + 'Error');
+    if (errorEl) {
+        errorEl.classList.remove('is-visible');
+        errorEl.classList.add('is-hiding');
+        setTimeout(() => errorEl.classList.remove('is-hiding'), 250);
+    }
+}
+
+function showFieldError(field, message) {
+    field.classList.add('has-error');
+    const errorEl = document.getElementById(field.id + 'Error');
+    const errorText = document.getElementById(field.id + 'ErrorText');
+    if (errorEl && errorText) {
+        errorText.textContent = message;
+        errorEl.classList.remove('is-hiding');
+        errorEl.classList.add('is-visible');
+    }
+}
+
+function showGlobalError(message) {
+    globalErrorText.textContent = message;
+    globalError.classList.add('is-visible');
+}
+
+function hideGlobalError() {
+    globalError.classList.remove('is-visible');
+}
+
+titleInput.addEventListener('input', () => clearFieldError(titleInput));
+
+async function loadPlaylist() {
+    try {
+        const resp = await fetch(`/api/playlist/${playlistId}/`, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Playlist not found');
+        const data = await resp.json();
+
+        titleInput.value = data.title || '';
+        isPublicInput.checked = !!data.is_public;
+
+        if (data.songs && data.songs.length > 0) {
+            for (const songId of data.songs) {
+                try {
+                    const songResp = await fetch(`/api/music/${songId}/`, { credentials: 'same-origin' });
+                    if (songResp.ok) {
+                        const songData = await songResp.json();
+                        addSong(songData);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        if (data.cover_has_file) {
+            const coverResp = await fetch(`/api/playlist/${playlistId}/download-cover/`, { credentials: 'same-origin' });
+            if (coverResp.ok) {
+                const coverData = await coverResp.json();
+                if (coverData.download_url) {
+                    existingCoverUrl = coverData.download_url;
+                    showCoverPreview(coverData.download_url);
+                }
+            }
+        }
+    } catch (err) {
+        showGlobalError('Failed to load playlist data.');
+    }
+}
+
+songSearchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    if (!query) {
+        searchResults.innerHTML = '';
+        return;
+    }
+    searchTimeout = setTimeout(() => searchSongs(query), 300);
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.song-search-wrapper')) {
+        searchResults.innerHTML = '';
+    }
+});
+
+songSearchInput.addEventListener('focus', function() {
+    const query = this.value.trim();
+    if (query) searchSongs(query);
+});
+
+async function searchSongs(query) {
+    try {
+        const resp = await fetch(`/api/music/?search=${encodeURIComponent(query)}`, { credentials: 'same-origin' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const results = data.results || [];
+        renderSearchResults(results);
+    } catch (e) {
+        searchResults.innerHTML = '';
+    }
+}
+
+function renderSearchResults(results) {
+    searchResults.innerHTML = '';
+    results.forEach(song => {
+        if (selectedSongs.some(s => s.id === song.id)) return;
+        const artistName = song.artist ? song.artist.name : 'Unknown Artist';
+        const item = document.createElement('div');
+        item.className = 'entity-form-search-item';
+        item.innerHTML = `
+            <span class="entity-form-search-item-text">${escapeHtml(song.title || 'Untitled')} - ${escapeHtml(artistName)}</span>
+            <button type="button" class="entity-form-search-item-add" onclick="selectSong(${song.id})">+</button>
+        `;
+        searchResults.appendChild(item);
+    });
+}
+
+function selectSong(songId) {
+    const item = Array.from(searchResults.children).find(el => {
+        const btn = el.querySelector('.entity-form-search-item-add');
+        return btn && btn.getAttribute('onclick').includes(songId);
+    });
+    if (!item) return;
+
+    const textEl = item.querySelector('.entity-form-search-item-text');
+    const text = textEl ? textEl.textContent : '';
+    const parts = text.split(' - ');
+    const title = parts[0] || 'Untitled';
+    const artist = parts.slice(1).join(' - ') || 'Unknown Artist';
+
+    addSong({ id: songId, title: title, artist: { name: artist } });
+
+    searchResults.innerHTML = '';
+    songSearchInput.value = '';
+}
+
+function addSong(songData) {
+    if (selectedSongs.some(s => s.id === songData.id)) return;
+    selectedSongs.push(songData);
+    renderSelectedSongs();
+}
+
+function removeSong(songId) {
+    selectedSongs = selectedSongs.filter(s => s.id !== songId);
+    renderSelectedSongs();
+}
+
+function renderSelectedSongs() {
+    selectedSongsContainer.innerHTML = '';
+    selectedSongs.forEach(song => {
+        const artistName = song.artist ? song.artist.name : 'Unknown Artist';
+        const chip = document.createElement('div');
+        chip.className = 'entity-form-tag';
+        chip.innerHTML = `
+            <span>${escapeHtml(song.title || 'Untitled')} - ${escapeHtml(artistName)}</span>
+            <button type="button" class="tag-remove" onclick="removeSong(${song.id})">&times;</button>
+        `;
+        selectedSongsContainer.appendChild(chip);
+    });
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    hideGlobalError();
+    clearFieldError(titleInput);
+
+    const title = titleInput.value.trim();
+    if (!title) {
+        showFieldError(titleInput, 'Title is required.');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = playlistId ? 'Saving...' : 'Adding...';
+
+    try {
+        const url = playlistId ? `/api/playlist/${playlistId}/` : '/api/playlist/';
+        const method = playlistId ? 'PUT' : 'POST';
+
+        const body = {
+            title: title,
+            is_public: isPublicInput.checked,
+            songs: selectedSongs.map(s => s.id)
+        };
+
+        const resp = await fetch(url, {
+            method,
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            if (data.title) {
+                showFieldError(titleInput, Array.isArray(data.title) ? data.title[0] : data.title);
+            } else if (data.detail) {
+                showGlobalError(data.detail);
+            } else if (data.non_field_errors) {
+                showGlobalError(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
+            } else {
+                showGlobalError('Something went wrong. Please try again.');
+            }
+            return;
+        }
+
+        const result = await resp.json();
+        const newId = result.id;
+
+        if (selectedFile) {
+            await uploadCover(newId, selectedFile);
+        }
+
+        window.location.href = `/playlist/${newId}/`;
+    } catch (err) {
+        showGlobalError('Network error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = playlistId ? 'Save Changes' : 'Add Playlist';
+    }
+}
+
+async function uploadCover(id, file) {
+    const putResp = await fetch(`/api/playlist/${id}/upload-cover/`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_type: file.type })
+    });
+
+    if (!putResp.ok) throw new Error('Failed to initiate cover upload');
+    const { upload_url, fs_id } = await putResp.json();
+
+    const uploadResp = await fetch(upload_url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+    });
+
+    if (!uploadResp.ok) throw new Error('Failed to upload cover file');
+
+    const completeResp = await fetch(`/api/playlist/${id}/complete-upload-cover/`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fs_id })
+    });
+
+    if (!completeResp.ok) throw new Error('Failed to finalize cover upload');
+}
+
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>
+{% endblock %}

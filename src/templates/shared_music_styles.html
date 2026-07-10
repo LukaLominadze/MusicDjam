@@ -213,4 +213,41 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .card-action-btns {
+        display: flex;
+        gap: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .card-action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1.5px solid rgba(155, 89, 182, 0.2);
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+    .card-action-btn:hover {
+        border-color: var(--accent-pink);
+        color: var(--accent-pink);
+        background: rgba(233, 30, 140, 0.1);
+    }
+
+    .card-action-btn.delete:hover {
+        border-color: #ff4444;
+        color: #ff4444;
+        background: rgba(255, 68, 68, 0.1);
+    }
+
+    .card-action-btns:empty {
+        display: none;
+    }
 </style>

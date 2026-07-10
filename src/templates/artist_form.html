@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Artist | Earpiece{% endblock %}
+
+{% block head %}
+{% include 'shared_form_styles.html' %}
+{% include 'shared_music_styles.html' %}
+<style>
+    .cover-upload-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="entity-form-container">
+    <a href="/" class="entity-form-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+        </svg>
+        Back to Explore
+    </a>
+
+    <div class="entity-form-card">
+        <h1 class="entity-form-title" id="formTitle">Add Artist</h1>
+
+        <div class="entity-form-error" id="globalError">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+            </svg>
+            <span id="globalErrorText"></span>
+        </div>
+
+        <form id="artistForm" onsubmit="handleSubmit(event)">
+            <div class="entity-form-group">
+                <label for="artistName">Name</label>
+                <input type="text" id="artistName" name="name" placeholder="Artist name" required autocomplete="off">
+                <div class="field-error" id="nameError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                    <span id="nameErrorText"></span>
+                </div>
+            </div>
+
+            <div class="entity-form-group">
+                <label>Cover Image</label>
+                <div class="entity-form-cover-upload" id="coverUpload" onclick="document.getElementById('coverInput').click()">
+                    <div class="cover-upload-icon" id="coverPlaceholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                        </svg>
+                        <span>Add Cover</span>
+                    </div>
+                </div>
+                <input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverSelect(event)">
+                <div class="entity-form-file-name" id="coverFileName"></div>
+            </div>
+
+            <button type="submit" class="entity-form-submit" id="submitBtn">Add Artist</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const artistId = {{ artist_id|default:"null" }};
+const userId = {{ user_id }};
+const isStaff = {{ is_staff|yesno:"true,false" }};
+
+const form = document.getElementById('artistForm');
+const nameInput = document.getElementById('artistName');
+const coverInput = document.getElementById('coverInput');
+const coverUpload = document.getElementById('coverUpload');
+const coverPlaceholder = document.getElementById('coverPlaceholder');
+const coverFileName = document.getElementById('coverFileName');
+const submitBtn = document.getElementById('submitBtn');
+const globalError = document.getElementById('globalError');
+const globalErrorText = document.getElementById('globalErrorText');
+const nameError = document.getElementById('nameError');
+const nameErrorText = document.getElementById('nameErrorText');
+
+let selectedFile = null;
+let existingCoverUrl = null;
+
+if (artistId) {
+    document.getElementById('formTitle').textContent = 'Edit Artist';
+    submitBtn.textContent = 'Save Changes';
+    document.title = 'Edit Artist | Earpiece';
+    loadArtist();
+}
+
+async function loadArtist() {
+    try {
+        const resp = await fetch(`/api/artist/${artistId}/`, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Artist not found');
+        const data = await resp.json();
+        nameInput.value = data.name || '';
+
+        if (data.cover_has_file) {
+            const coverResp = await fetch(`/api/artist/${artistId}/download-cover/`, { credentials: 'same-origin' });
+            if (coverResp.ok) {
+                const coverData = await coverResp.json();
+                if (coverData.download_url) {
+                    existingCoverUrl = coverData.download_url;
+                    showCoverPreview(coverData.download_url);
+                }
+            }
+        }
+    } catch (err) {
+        showGlobalError('Failed to load artist data.');
+    }
+}
+
+function showCoverPreview(src) {
+    coverPlaceholder.style.display = 'none';
+    const existing = coverUpload.querySelector('img');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.src = src;
+    coverUpload.appendChild(img);
+}
+
+function handleCoverSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    selectedFile = file;
+    coverFileName.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        showCoverPreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearFieldError(field) {
+    field.classList.remove('has-error');
+    const errorEl = document.getElementById(field.id + 'Error');
+    if (errorEl) {
+        errorEl.classList.remove('is-visible');
+        errorEl.classList.add('is-hiding');
+        setTimeout(() => errorEl.classList.remove('is-hiding'), 250);
+    }
+}
+
+function showFieldError(field, message) {
+    field.classList.add('has-error');
+    const errorEl = document.getElementById(field.id + 'Error');
+    const errorText = document.getElementById(field.id + 'ErrorText');
+    if (errorEl && errorText) {
+        errorText.textContent = message;
+        errorEl.classList.remove('is-hiding');
+        errorEl.classList.add('is-visible');
+    }
+}
+
+function showGlobalError(message) {
+    globalErrorText.textContent = message;
+    globalError.classList.add('is-visible');
+}
+
+function hideGlobalError() {
+    globalError.classList.remove('is-visible');
+}
+
+nameInput.addEventListener('input', () => clearFieldError(nameInput));
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    hideGlobalError();
+    clearFieldError(nameInput);
+
+    const name = nameInput.value.trim();
+    if (!name) {
+        showFieldError(nameInput, 'Name is required.');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = artistId ? 'Saving...' : 'Adding...';
+
+    try {
+        const url = artistId ? `/api/artist/${artistId}/` : '/api/artist/';
+        const method = artistId ? 'PUT' : 'POST';
+
+        const resp = await fetch(url, {
+            method,
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+
+        if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            if (data.name) {
+                showFieldError(nameInput, Array.isArray(data.name) ? data.name[0] : data.name);
+            } else if (data.detail) {
+                showGlobalError(data.detail);
+            } else if (data.non_field_errors) {
+                showGlobalError(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
+            } else {
+                showGlobalError('Something went wrong. Please try again.');
+            }
+            return;
+        }
+
+        const result = await resp.json();
+        const newId = result.id;
+
+        if (selectedFile) {
+            await uploadCover(newId, selectedFile);
+        }
+
+        window.location.href = `/artist/${newId}/`;
+    } catch (err) {
+        showGlobalError('Network error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = artistId ? 'Save Changes' : 'Add Artist';
+    }
+}
+
+async function uploadCover(id, file) {
+    const putResp = await fetch(`/api/artist/${id}/upload-cover/`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_type: file.type })
+    });
+
+    if (!putResp.ok) throw new Error('Failed to initiate cover upload');
+    const { upload_url, fs_id } = await putResp.json();
+
+    const uploadResp = await fetch(upload_url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+    });
+
+    if (!uploadResp.ok) throw new Error('Failed to upload cover file');
+
+    const completeResp = await fetch(`/api/artist/${id}/complete-upload-cover/`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fs_id })
+    });
+
+    if (!completeResp.ok) throw new Error('Failed to finalize cover upload');
+}
+</script>
+{% endblock %}
