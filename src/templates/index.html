@@ -541,7 +541,7 @@ let currentView = 'music';
 let audioCache = new Map();
 let currentPlayingId = null;
 let isPlaying = false;
-const currentUserId = {{ user_id|safe }};
+const currentUserId = '{{ user_id|safe }}';
 const currentUserIsStaff = {{ is_staff|yesno:"true,false" }};
 
 const templates = {};

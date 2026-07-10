@@ -165,7 +165,7 @@ let audioCache = new Map();
 let currentPlayingId = null;
 let isPlaying = false;
 let entityData = null;
-const currentUserId = {{ user_id|safe }};
+const currentUserId = '{{ user_id|safe }}';
 const currentUserIsStaff = {{ is_staff|yesno:"true,false" }};
 
 const audio = document.getElementById('audioPlayer');
