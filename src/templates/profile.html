@@ -91,20 +91,21 @@
                 const img = new Image();
                 img.alt = data.username;
                 img.onload = function () {
-                    avatarEl.innerHTML = '';
-                    avatarEl.appendChild(img);
+                    var placeholder = avatarEl.querySelector('svg');
+                    if (placeholder) placeholder.remove();
+                    avatarEl.insertBefore(img, avatarEl.firstChild);
                 };
                 img.onerror = function () {
-                    avatarEl.innerHTML = AVATAR_PLACEHOLDER;
+                    var existing = avatarEl.querySelector('img');
+                    if (existing) existing.remove();
                 };
                 img.src = data.profile_picture_url;
             }
 
-            const section = document.getElementById('playlists_section');
             const container = document.getElementById('playlist_container');
 
             if (!data.playlists || data.playlists.length === 0) {
-                section.style.display = 'none';
+                container.innerHTML = '<div class="empty-state">No playlists yet</div>';
                 return;
             }
 
@@ -199,14 +200,13 @@
             const img = new Image();
             img.alt = 'Profile';
             img.onload = function () {
-                avatarEl.innerHTML = '';
-                avatarEl.appendChild(img);
-                const newLabel = document.createElement('label');
-                newLabel.className = 'profile-avatar-edit';
-                newLabel.id = 'avatar_edit_label';
-                newLabel.style.opacity = '1';
-                newLabel.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg><span class="profile-avatar-edit-text">Edit</span>';
-                avatarEl.appendChild(newLabel);
+                var oldImg = avatarEl.querySelector('img');
+                if (oldImg) oldImg.remove();
+                var placeholder = avatarEl.querySelector('svg');
+                if (placeholder) placeholder.remove();
+                avatarEl.insertBefore(img, avatarEl.firstChild);
+                label.classList.remove('uploading');
+                label.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg><span class="profile-avatar-edit-text">Edit</span>';
                 rebindAvatarInput();
             };
             img.src = url;
