@@ -118,6 +118,8 @@
 
 <audio id="audioPlayer" preload="auto"></audio>
 
+{% include 'shared_player_bar.html' %}
+
 <script>
 const PAGE_SIZE = 30;
 let currentPage = 1;
@@ -289,7 +291,7 @@ async function togglePlay(musicId) {
 async function playMusic(musicId) {
     const item = currentData.find(m => m.id === musicId);
     if (!item) return;
-    if (audioCache.has(musicId)) { audio.src = audioCache.get(musicId); audio.play(); setPlayingState(musicId, true); return; }
+    if (audioCache.has(musicId)) { audio.src = audioCache.get(musicId); audio.play(); setPlayingState(musicId, true); showPlayerBar(item); return; }
     try {
         const resp = await fetch(`/api/music/${musicId}/download/`, { credentials: 'same-origin' });
         if (!resp.ok) throw new Error('Download unavailable');
@@ -301,6 +303,7 @@ async function playMusic(musicId) {
         audio.src = blobUrl;
         audio.play();
         setPlayingState(musicId, true);
+        showPlayerBar(item);
     } catch (e) { console.error('Play failed:', e); }
 }
 
@@ -315,16 +318,19 @@ function setPlayingState(id, playing) {
         btn.querySelector('.icon-play').style.display = (cid === id && playing) ? 'none' : 'block';
         btn.querySelector('.icon-pause').style.display = (cid === id && playing) ? 'block' : 'none';
     });
+    updatePlayerPlayBtn(playing);
 }
 
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return;
-    const fill = document.getElementById('playerProgressFill');
-    const cur = document.getElementById('playerCurrentTime');
-    if (fill) fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
-    if (cur) cur.textContent = formatTime(audio.currentTime);
+    document.getElementById('playerProgressFill').style.width = (audio.currentTime / audio.duration * 100) + '%';
+    document.getElementById('playerCurrentTime').textContent = formatTime(audio.currentTime);
 });
-audio.addEventListener('ended', () => { setPlayingState(currentPlayingId, false); });
+audio.addEventListener('ended', () => {
+    setPlayingState(currentPlayingId, false);
+    document.getElementById('playerProgressFill').style.width = '0%';
+    document.getElementById('playerCurrentTime').textContent = '0:00';
+});
 audio.addEventListener('error', () => { setPlayingState(currentPlayingId, false); });
 
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }

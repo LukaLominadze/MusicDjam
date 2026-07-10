@@ -278,6 +278,25 @@
         box-shadow: 0 4px 20px rgba(233, 30, 140, 0.5);
     }
 
+    .player-stop-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(155, 89, 182, 0.3);
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s ease;
+    }
+
+    .player-stop-btn:hover {
+        border-color: var(--accent-pink);
+        color: var(--accent-pink);
+    }
+
     .player-progress-wrap {
         flex: 1;
         display: flex;
@@ -486,6 +505,11 @@
             </svg>
             <svg class="icon-pause" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
+            </svg>
+        </button>
+        <button class="player-stop-btn" id="playerStopBtn" onclick="playerStop()" title="Stop">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <rect x="3" y="3" width="10" height="10" rx="1.5"/>
             </svg>
         </button>
     </div>
@@ -928,6 +952,14 @@ function playerTogglePlay() {
     } else {
         resumeMusic();
     }
+}
+
+function playerStop() {
+    audio.pause();
+    audio.currentTime = 0;
+    setPlayingState(currentPlayingId, false);
+    document.getElementById('playerProgressFill').style.width = '0%';
+    document.getElementById('playerCurrentTime').textContent = '0:00';
 }
 
 function showPlayerBar(musicItem) {
