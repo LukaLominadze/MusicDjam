@@ -11,8 +11,14 @@ class MusicRepository:
             return qs
         if filters.get('artist'):
             qs = qs.filter(artist__name__icontains=filters['artist'])
+        if filters.get('artist_id'):
+            qs = qs.filter(artist_id=filters['artist_id'])
         if filters.get('album'):
             qs = qs.filter(album__title__icontains=filters['album'])
+        if filters.get('album_id'):
+            qs = qs.filter(album_id=filters['album_id'])
+        if filters.get('playlist_id'):
+            qs = qs.filter(playlists__id=filters['playlist_id'])
         if filters.get('owner'):
             qs = qs.filter(owner_id=filters['owner'])
         if filters.get('is_public') is not None:

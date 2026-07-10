@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+
+{% block title %}Album - Earpiece{% endblock %}
+
+{% block head %}
+<style>
+    .detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        padding-bottom: 120px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .detail-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-cover {
+        width: 160px;
+        height: 160px;
+        border-radius: 16px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: var(--bg-input);
+    }
+
+    .detail-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .detail-cover-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(233, 30, 140, 0.1));
+    }
+
+    .detail-info h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0 0 0.3rem;
+    }
+
+    .detail-info .detail-subtitle {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .detail-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .detail-back:hover {
+        color: var(--accent-pink);
+    }
+
+    .song-count {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="detail-container">
+    <a href="/" class="detail-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+        </svg>
+        Back to Explore
+    </a>
+
+    <div class="detail-header" id="detailHeader">
+        <div class="detail-cover" id="detailCover">
+            <div class="detail-cover-fallback">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
+                    <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2 2.5.895 2.5 2m9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2"/>
+                    <path fill-rule="evenodd" d="M14 11V2h1v11zM1.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 1 0V2.5A.5.5 0 0 0 1.5 2m13-1a.5.5 0 0 0-.5-.5H14v11h.5a.5.5 0 0 0 0-1h-13a.5.5 0 0 0 0 1H2V1.5a.5.5 0 0 0-.5-.5z"/>
+                    <path d="M4 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V4zm5-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V2z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="detail-info">
+            <h1 id="detailTitle">-</h1>
+            <div class="detail-subtitle" id="detailArtist">Album</div>
+        </div>
+    </div>
+
+    <div class="song-count" id="songCount"></div>
+    <div class="loading-spinner" id="loadingSpinner" style="display:none;"></div>
+    <div id="songContainer"></div>
+
+    <div class="pagination" id="pagination" style="display:none;">
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <span class="pagination-info" id="pageInfo"></span>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+    </div>
+</div>
+
+<audio id="audioPlayer" preload="auto"></audio>
+
+<script>
+const PAGE_SIZE = 30;
+let currentPage = 1;
+let totalResults = 0;
+let currentData = [];
+let musicTemplate = '';
+let audioCache = new Map();
+let currentPlayingId = null;
+let isPlaying = false;
+let entityData = null;
+
+const audio = document.getElementById('audioPlayer');
+const entityId = {{ album_id }};
+
+async function loadTemplate() {
+    const resp = await fetch('/music_card.html');
+    musicTemplate = await resp.text();
+}
+
+async function loadEntity() {
+    try {
+        const resp = await fetch(`/api/album/${entityId}/`, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Album not found');
+        entityData = await resp.json();
+
+        document.getElementById('detailTitle').textContent = entityData.title || 'Unknown';
+        const artistName = entityData.artist ? entityData.artist.name : 'Unknown Artist';
+        document.getElementById('detailArtist').textContent = artistName;
+
+        if (entityData.cover) {
+            const coverResp = await fetch(`/api/album/${entityId}/download-cover/`, { credentials: 'same-origin' });
+            if (coverResp.ok) {
+                const data = await coverResp.json();
+                if (data.download_url) {
+                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="Cover">`;
+                }
+            }
+        } else if (entityData.artist && entityData.artist.id) {
+            const coverResp = await fetch(`/api/artist/${entityData.artist.id}/download-cover/`, { credentials: 'same-origin' });
+            if (coverResp.ok) {
+                const data = await coverResp.json();
+                if (data.download_url) {
+                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="Cover">`;
+                }
+            }
+        }
+    } catch (err) {
+        document.getElementById('detailTitle').textContent = 'Not found';
+    }
+}
+
+async function fetchSongs() {
+    const container = document.getElementById('songContainer');
+    const spinner = document.getElementById('loadingSpinner');
+    const pagination = document.getElementById('pagination');
+
+    container.innerHTML = '';
+    spinner.style.display = 'flex';
+    pagination.style.display = 'none';
+
+    try {
+        const resp = await fetch(`/api/music/?album_id=${entityId}&page=${currentPage}`, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Failed to fetch songs');
+
+        const data = await resp.json();
+        currentData = data.results || [];
+        totalResults = data.total || 0;
+
+        spinner.style.display = 'none';
+        document.getElementById('songCount').textContent = `${totalResults} song${totalResults !== 1 ? 's' : ''}`;
+
+        if (currentData.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h3>No songs yet</h3></div>';
+            return;
+        }
+
+        renderCards(currentData);
+        renderPagination();
+    } catch (err) {
+        spinner.style.display = 'none';
+        container.innerHTML = `<div class="empty-state"><h3>Something went wrong</h3><p>${err.message}</p></div>`;
+    }
+}
+
+function renderCards(items) {
+    const container = document.getElementById('songContainer');
+    const grid = document.createElement('div');
+    grid.className = 'music-grid';
+
+    items.forEach((m, i) => {
+        const artistName = m.artist ? m.artist.name : 'Unknown Artist';
+        const albumTitle = m.album ? m.album.title : 'Unknown Album';
+        const lengthStr = formatLength(m.length);
+        const playDisabled = m.has_file ? '' : 'disabled';
+
+        let cardHtml = musicTemplate
+            .replace(/\{\{id\}\}/g, m.id)
+            .replace(/\{\{title\}\}/g, escapeHtml(m.title || 'Untitled'))
+            .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
+            .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
+            .replace(/\{\{length_formatted\}\}/g, lengthStr)
+            .replace(/\{\{play_disabled\}\}/g, playDisabled)
+            .replace(/\{\{fs_id\}\}/g, m.music_file || '');
+
+        const temp = document.createElement('div');
+        temp.innerHTML = cardHtml.trim();
+        const card = temp.firstElementChild;
+        card.style.animationDelay = (i * 0.03) + 's';
+
+        if (m.artist && m.artist.id) fetchCover(m.artist.id, card);
+
+        if (currentPlayingId === m.id) {
+            card.classList.add('playing');
+            const btn = card.querySelector('.music-card-play-btn');
+            if (btn) {
+                btn.querySelector('.icon-play').style.display = 'none';
+                btn.querySelector('.icon-pause').style.display = 'block';
+            }
+        }
+
+        grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+}
+
+async function fetchCover(artistId, cardEl) {
+    const cacheKey = 'cover_artist_' + artistId;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) { setCoverImage(cardEl, cached); return; }
+    try {
+        const resp = await fetch(`/api/artist/${artistId}/download-cover/`, { credentials: 'same-origin' });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.download_url) {
+                sessionStorage.setItem(cacheKey, data.download_url);
+                setCoverImage(cardEl, data.download_url);
+            }
+        }
+    } catch (e) {}
+}
+
+function setCoverImage(cardEl, url) {
+    const img = cardEl.querySelector('.music-card-cover img');
+    if (img) img.src = url;
+}
+
+function formatLength(s) { if (!s || s <= 0) return '0:00'; return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function formatTime(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0'); }
+
+function renderPagination() {
+    const el = document.getElementById('pagination');
+    const totalPages = Math.ceil(totalResults / PAGE_SIZE);
+    if (totalResults <= PAGE_SIZE) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    document.getElementById('prevBtn').disabled = currentPage <= 1;
+    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
+function changePage(d) { currentPage += d; window.scrollTo({top:0,behavior:'smooth'}); fetchSongs(); }
+
+async function togglePlay(musicId) {
+    if (currentPlayingId === musicId && isPlaying) { audio.pause(); setPlayingState(musicId, false); return; }
+    if (currentPlayingId === musicId && !isPlaying) { audio.play(); setPlayingState(musicId, true); return; }
+    await playMusic(musicId);
+}
+
+async function playMusic(musicId) {
+    const item = currentData.find(m => m.id === musicId);
+    if (!item) return;
+    if (audioCache.has(musicId)) { audio.src = audioCache.get(musicId); audio.play(); setPlayingState(musicId, true); return; }
+    try {
+        const resp = await fetch(`/api/music/${musicId}/download/`, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Download unavailable');
+        const data = await resp.json();
+        if (!data.download_url) throw new Error('No URL');
+        const blob = await (await fetch(data.download_url)).blob();
+        const blobUrl = URL.createObjectURL(blob);
+        audioCache.set(musicId, blobUrl);
+        audio.src = blobUrl;
+        audio.play();
+        setPlayingState(musicId, true);
+    } catch (e) { console.error('Play failed:', e); }
+}
+
+function setPlayingState(id, playing) {
+    isPlaying = playing;
+    currentPlayingId = id;
+    document.querySelectorAll('.music-card').forEach(card => {
+        const cid = parseInt(card.dataset.musicId);
+        const btn = card.querySelector('.music-card-play-btn');
+        if (!btn) return;
+        card.classList.toggle('playing', cid === id && playing);
+        btn.querySelector('.icon-play').style.display = (cid === id && playing) ? 'none' : 'block';
+        btn.querySelector('.icon-pause').style.display = (cid === id && playing) ? 'block' : 'none';
+    });
+}
+
+audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const fill = document.getElementById('playerProgressFill');
+    const cur = document.getElementById('playerCurrentTime');
+    if (fill) fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+    if (cur) cur.textContent = formatTime(audio.currentTime);
+});
+audio.addEventListener('ended', () => { setPlayingState(currentPlayingId, false); });
+audio.addEventListener('error', () => { setPlayingState(currentPlayingId, false); });
+
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+loadTemplate().then(() => { loadEntity(); fetchSongs(); });
+</script>
+{% endblock %}

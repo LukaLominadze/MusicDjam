@@ -11,4 +11,7 @@ urlpatterns = [
     path('artist_card.html', views.serve_template('artist_card.html'), name='artist_card_template'),
     path('album_card.html', views.serve_template('album_card.html'), name='album_card_template'),
     path('playlist_card.html', views.serve_template('playlist_card.html'), name='playlist_card_template'),
+    path('artist/<int:artist_id>/', views.artist_detail, name='artist_detail'),
+    path('album/<int:album_id>/', views.album_detail, name='album_detail'),
+    path('playlist/<int:playlist_id>/', views.playlist_detail, name='playlist_detail'),
 ]

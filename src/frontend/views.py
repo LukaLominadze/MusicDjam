@@ -26,3 +26,18 @@ def serve_template(filename):
             content = f.read()
         return HttpResponse(content, content_type='text/html')
     return view
+
+def artist_detail(request, artist_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'artist_detail.html', {'artist_id': artist_id})
+
+def album_detail(request, album_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'album_detail.html', {'album_id': album_id})
+
+def playlist_detail(request, playlist_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'playlist_detail.html', {'playlist_id': playlist_id})

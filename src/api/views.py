@@ -150,7 +150,7 @@ class MusicViewSet(viewsets.ModelViewSet):
     def list(self, request):
         filters = {
             k: request.query_params.get(k)
-            for k in ('artist', 'album', 'owner', 'is_public', 'title', 'search')
+            for k in ('artist', 'artist_id', 'album', 'album_id', 'playlist_id', 'owner', 'is_public', 'title', 'search')
             if request.query_params.get(k)
         }
         if 'is_public' in filters:

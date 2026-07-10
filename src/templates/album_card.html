@@ -1,4 +1,4 @@
-<div class="music-card" data-album-id="{{id}}">
+<div class="music-card clickable-card" data-album-id="{{id}}" onclick="window.location='/album/{{id}}/'" style="cursor:pointer;">
     <div class="music-card-inner">
         <div class="music-card-cover">
             <img src="{{cover_url}}" alt="Cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
