@@ -309,6 +309,11 @@ async function createAlbum(title, artistId) {
     return await resp.json();
 }
 
+function toIntPk(value) {
+    var n = parseInt(value, 10);
+    return (Number.isInteger(n) && n > 0) ? n : null;
+}
+
 async function handleSubmit() {
     hideAllErrors();
 
@@ -323,8 +328,8 @@ async function handleSubmit() {
     submitBtn.textContent = isEditing ? 'Saving...' : 'Adding...';
 
     try {
-        let artistId = Number(selectedArtistId) || Number(document.getElementById('artistId').dataset.id) || null;
-        let albumId = Number(selectedAlbumId) || Number(document.getElementById('albumId').dataset.id) || null;
+        var artistId = toIntPk(selectedArtistId) || toIntPk(document.getElementById('artistId').dataset.id);
+        var albumId = toIntPk(selectedAlbumId) || toIntPk(document.getElementById('albumId').dataset.id);
 
         const artistName = document.getElementById('artistInput').value.trim();
         if (artistName && !artistId) {

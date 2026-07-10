@@ -177,7 +177,7 @@ class MusicViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        music = self.repository.create(serializer.validated_data)
+        music = serializer.save()
         out_serializer = self.get_serializer(music)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -187,7 +187,7 @@ class MusicViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to update this music'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(music, data=request.data)
         serializer.is_valid(raise_exception=True)
-        updated_music = self.repository.update(music, serializer.validated_data)
+        updated_music = serializer.save()
         out_serializer = self.get_serializer(updated_music)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
@@ -284,7 +284,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        playlist = self.repository.create(serializer.validated_data)
+        playlist = serializer.save()
         out_serializer = self.get_serializer(playlist)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -294,7 +294,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to update this playlist'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(playlist, data=request.data)
         serializer.is_valid(raise_exception=True)
-        updated_playlist = self.repository.update(playlist, serializer.validated_data)
+        updated_playlist = serializer.save()
         out_serializer = self.get_serializer(updated_playlist)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
@@ -391,7 +391,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        album = self.repository.create(serializer.validated_data)
+        album = serializer.save()
         out_serializer = self.get_serializer(album)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -399,7 +399,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
         album = self.repository.retrieve(pk)
         serializer = self.get_serializer(album, data=request.data)
         serializer.is_valid(raise_exception=True)
-        updated_album = self.repository.update(album, serializer.validated_data)
+        updated_album = serializer.save()
         out_serializer = self.get_serializer(updated_album)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
@@ -494,7 +494,7 @@ class ArtistViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        artist = self.repository.create(serializer.validated_data)
+        artist = serializer.save()
         out_serializer = self.get_serializer(artist)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -502,7 +502,7 @@ class ArtistViewSet(viewsets.ModelViewSet):
         artist = self.repository.retrieve(pk)
         serializer = self.get_serializer(artist, data=request.data)
         serializer.is_valid(raise_exception=True)
-        updated_artist = self.repository.update(artist, serializer.validated_data)
+        updated_artist = serializer.save()
         out_serializer = self.get_serializer(updated_artist)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
