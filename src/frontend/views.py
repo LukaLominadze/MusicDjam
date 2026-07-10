@@ -1,4 +1,7 @@
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.conf import settings
+import os
 
 def explore(request):
     if not request.user.is_authenticated:
@@ -15,3 +18,9 @@ def profile(request):
     if not request.user.is_authenticated:
         return redirect('login')
     return render(request, 'profile.html')
+
+def music_card_template(request):
+    template_path = os.path.join(settings.BASE_DIR, 'templates', 'music_card.html')
+    with open(template_path, 'r') as f:
+        content = f.read()
+    return HttpResponse(content, content_type='text/html')

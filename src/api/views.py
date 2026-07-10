@@ -156,8 +156,18 @@ class MusicViewSet(viewsets.ModelViewSet):
         if 'is_public' in filters:
             filters['is_public'] = filters['is_public'].lower() == 'true'
         music_list = self.repository.list(filters)
+        total = music_list.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = 30
+        offset = (page - 1) * page_size
+        music_list = music_list[offset:offset + page_size]
         serializer = self.get_serializer(music_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'results': serializer.data,
+            'total': total,
+            'page': page,
+            'page_size': page_size,
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
         music = self.repository.retrieve(pk)

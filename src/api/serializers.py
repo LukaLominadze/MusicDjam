@@ -33,11 +33,23 @@ class AlbumSerializer(serializers.ModelSerializer):
 
 class MusicSerializer(serializers.ModelSerializer):
     music_file = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    has_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Music
-        fields = ['id', 'title', 'length', 'is_public', 'artist', 'album', 'owner', 'music_file']
+        fields = ['id', 'title', 'length', 'is_public', 'artist', 'album', 'owner', 'music_file', 'has_file']
         read_only_fields = ['id']
+
+    def get_has_file(self, obj):
+        return obj.music_file is not None and obj.music_file.fs_id is not None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.artist_id:
+            data['artist'] = {'id': instance.artist_id, 'name': instance.artist.name}
+        if instance.album_id:
+            data['album'] = {'id': instance.album_id, 'title': instance.album.title}
+        return data
 
 
 class PlaylistSerializer(serializers.ModelSerializer):
