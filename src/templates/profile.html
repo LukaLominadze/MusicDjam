@@ -1,11 +1,327 @@
 {% extends 'base.html' %}
 
-{% block title %}Profile | MusicDjam{% endblock %}
+{% block title %}Profile | Earpiece{% endblock %}
+
+{% block head %}
+<style>
+    .profile-container {
+        min-height: calc(100vh - 76px);
+        position: relative;
+        z-index: 1;
+        padding: 2rem 1rem;
+    }
+
+    .profile-card {
+        max-width: 560px;
+        margin: 0 auto;
+        background: linear-gradient(145deg, rgba(26, 14, 48, 0.95), rgba(18, 9, 42, 0.98));
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 0 80px rgba(233, 30, 140, 0.06);
+        padding: 2.5rem 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: var(--accent-pink);
+        text-decoration: none;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--bg-input);
+        border: 3px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin: 0 auto;
+        transition: border-color 0.3s ease;
+    }
+
+    .profile-avatar:hover {
+        border-color: var(--accent-pink);
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-username {
+        margin-top: 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    .playlist-scroll {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+    }
+
+    .playlist-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .playlist-card {
+        flex: 0 0 140px;
+        background: var(--bg-input);
+        border-radius: 12px;
+        border: 1px solid rgba(155, 89, 182, 0.15);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .playlist-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(233, 30, 140, 0.15);
+        border-color: var(--border-subtle);
+    }
+
+    .playlist-cover {
+        width: 140px;
+        height: 140px;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .playlist-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .playlist-title {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .empty-state {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        padding: 1.5rem 0;
+        text-align: center;
+    }
+
+    .loading-state {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding: 1.5rem 0;
+        text-align: center;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .btn-logout {
+        display: none;
+        margin: 1.25rem auto 0;
+        padding: 0.5rem 1.5rem;
+        background: transparent;
+        border: 1.5px solid rgba(255, 50, 50, 0.4);
+        border-radius: 10px;
+        color: #ffb3b3;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .btn-logout:hover {
+        background: rgba(255, 50, 50, 0.12);
+        border-color: rgba(255, 50, 50, 0.7);
+        color: #ff6b6b;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+</style>
+{% endblock %}
 
 {% block body %}
-<div>
-    <div>
-        <img src='{{ }}' />
+<div class="profile-container">
+    <div class="profile-card">
+
+        <a href="/" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+            </svg>
+            Back
+        </a>
+
+        <div class="profile-header">
+            <div class="profile-avatar" id="profile_avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
+                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                </svg>
+            </div>
+            <h2 class="profile-username" id="profile_username"></h2>
+            <button class="btn-logout" id="btn_logout">Log out</button>
+        </div>
+
+        <div id="playlists_section">
+            <div class="section-label">Playlists</div>
+            <div class="playlist-scroll" id="playlist_container">
+                <div class="loading-state">Loading playlists...</div>
+            </div>
+        </div>
+
     </div>
-<div>
+</div>
+
+<script>
+    const AVATAR_PLACEHOLDER = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
+        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+    </svg>`;
+
+    const COVER_PLACEHOLDER = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="var(--text-muted)" viewBox="0 0 16 16">
+        <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2S6 11.895 6 13"/>
+        <path d="M14 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/>
+        <path d="M14 12c0 1.105-1.12 2-2.5 2S9 13.105 9 12s1.12-2 2.5-2S14 10.895 14 12"/>
+        <path d="M8 4v8"/>
+        <path d="M3 12h8"/>
+        <path d="M8 4a3 3 0 0 0-3 3v1h6V7a3 3 0 0 0-3-3"/>
+    </svg>`;
+
+    async function loadProfile() {
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('id');
+        const isOwnProfile = !userId;
+        const url = userId
+            ? `/api/profile/?id=${encodeURIComponent(userId)}`
+            : '/api/profile/';
+
+        if (isOwnProfile) {
+            document.getElementById('btn_logout').style.display = 'block';
+        }
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Failed to load profile');
+            }
+
+            const data = await response.json();
+
+            document.getElementById('profile_username').textContent = data.username;
+
+            const avatarEl = document.getElementById('profile_avatar');
+            if (data.profile_picture_url) {
+                const img = new Image();
+                img.alt = data.username;
+                img.onload = function () {
+                    avatarEl.innerHTML = '';
+                    avatarEl.appendChild(img);
+                };
+                img.onerror = function () {
+                    avatarEl.innerHTML = AVATAR_PLACEHOLDER;
+                };
+                img.src = data.profile_picture_url;
+            }
+
+            const section = document.getElementById('playlists_section');
+            const container = document.getElementById('playlist_container');
+
+            if (!data.playlists || data.playlists.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            data.playlists.forEach(function (playlist) {
+                const card = document.createElement('div');
+                card.className = 'playlist-card';
+
+                const cover = document.createElement('div');
+                cover.className = 'playlist-cover';
+
+                if (playlist.cover_url) {
+                    const img = new Image();
+                    img.alt = playlist.title;
+                    img.onload = function () {
+                        cover.innerHTML = '';
+                        cover.appendChild(img);
+                    };
+                    img.onerror = function () {
+                        cover.innerHTML = COVER_PLACEHOLDER;
+                    };
+                    img.src = playlist.cover_url;
+                } else {
+                    cover.innerHTML = COVER_PLACEHOLDER;
+                }
+
+                const title = document.createElement('div');
+                title.className = 'playlist-title';
+                title.textContent = playlist.title;
+
+                card.appendChild(cover);
+                card.appendChild(title);
+                container.appendChild(card);
+            });
+
+        } catch (err) {
+            const container = document.getElementById('playlist_container');
+            container.innerHTML = '<div class="empty-state">Failed to load profile</div>';
+            document.getElementById('profile_username').textContent = '';
+        }
+    }
+
+    loadProfile();
+
+    document.getElementById('btn_logout').addEventListener('click', async function () {
+        try {
+            await fetch('/api/auth/logout/', { method: 'POST' });
+        } catch (err) {
+        }
+        window.location.href = '/login';
+    });
+</script>
 {% endblock %}

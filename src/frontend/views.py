@@ -1,7 +1,5 @@
 from django.shortcuts import redirect, render
 
-# Create your views here.
-
 def explore(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -12,3 +10,8 @@ def login(request):
 
 def register(request):
     return render(request, 'register.html')
+
+def profile(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'profile.html')

@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +9,14 @@ from .repositories import ArtistRepository, AlbumRepository, MusicRepository, Pl
 from .serializers import RegisterSerializer, ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer
 from .models import User, Artist, Album, Music, Playlist
 from .services import FileMetadataService
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({'detail': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -57,21 +65,41 @@ class UserProfileViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
-        username = request.query_params.get('username')
-        if not username:
-            return Response({'error': 'User Id missing!'}, status=status.HTTP_400_BAD_REQUEST)
+        user_id = request.query_params.get('id')
 
-        user = User.objects.get(username=username)
-        if not user:
-            return Response({'error': 'User with username not found!'}, status=status.HTTP_404_NOT_FOUND)
+        if user_id:
+            try:
+                target_user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            target_user = request.user
 
         service = FileMetadataService()
-        download_url = service.get_download_url(user.profile_picture)
 
-        if download_url is None:
-            return Response({'error': 'User does not have a profile picture'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            profile_picture_url = service.get_download_url(target_user.profile_picture)
+        except Exception:
+            profile_picture_url = None
 
-        return Response({'download_url': download_url}, status=status.HTTP_200_OK)
+        playlists = Playlist.objects.filter(owner=target_user)
+        playlists_data = []
+        for playlist in playlists:
+            try:
+                cover_url = service.get_download_url(playlist.cover)
+            except Exception:
+                cover_url = None
+            playlists_data.append({
+                'id': playlist.id,
+                'title': playlist.title,
+                'cover_url': cover_url,
+            })
+
+        return Response({
+            'username': target_user.username,
+            'profile_picture_url': profile_picture_url,
+            'playlists': playlists_data,
+        }, status=status.HTTP_200_OK)
 
 
     @action(detail=False, methods=['put'], url_path='update-profile-picture')
@@ -378,3 +406,50 @@ class ArtistViewSet(viewsets.ModelViewSet):
         artist = self.repository.retrieve(pk)
         self.repository.destroy(artist)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='download-cover')
+    def download_cover(self, request, pk=None):
+        artist = self.repository.retrieve(pk)
+        service = FileMetadataService()
+        download_url = service.get_download_url(artist.cover)
+
+        if download_url is None:
+            return Response({'error': 'No cover image available'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'download_url': download_url}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['put'], url_path='upload-cover')
+    def upload_cover(self, request, pk=None):
+        artist = self.repository.retrieve(pk)
+        content_type = request.data.get('file_type', 'undefined')
+
+        if content_type not in ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/tiff', 'image/bmp', 'image/svg+xml']:
+            return Response({"error": "Unsupported or invalid file type provided"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        service = FileMetadataService()
+        metadata = service.get_or_create_metadata(artist.cover, content_type)
+        artist.cover = metadata
+        artist.save()
+
+        try:
+            result = service.initiate_upload(metadata)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['put'], url_path='complete-upload-cover')
+    def complete_upload_cover(self, request, pk=None):
+        artist = self.repository.retrieve(pk)
+        fs_id = request.data.get('fs_id')
+
+        if not fs_id:
+            return Response({'error': 'fs_id required!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if artist.cover and artist.cover.fs_id == fs_id:
+            return Response({'detail': 'Cover image synchronized'}, status=status.HTTP_200_OK)
+
+        service = FileMetadataService()
+        service.complete_upload(artist.cover, fs_id)
+
+        return Response({'detail': 'Cover image synchronized'}, status=status.HTTP_200_OK)

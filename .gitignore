@@ -222,3 +222,5 @@ __marimo__/
 !*.example.conf
 volumes
 compose.yaml
+
+datasets/
