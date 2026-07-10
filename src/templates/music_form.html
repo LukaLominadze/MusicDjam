@@ -1,38 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{% if music_id %}Edit Music{% else %}Add Music{% endif %} | Earpiece{% endblock %}
 
 {% block head %}
-{% include 'shared_form_styles.html' %}
-{% include 'shared_music_styles.html' %}
-<style>
-    .entity-form-file-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .entity-form-length-display {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 1rem;
-        background: var(--bg-input);
-        border: 1.5px solid rgba(155, 89, 182, 0.2);
-        border-radius: 12px;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .entity-form-length-display.has-value {
-        color: var(--text-primary);
-    }
-
-    .autocomplete-wrapper {
-        position: relative;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/music.css' %}">
+<link rel="stylesheet" href="{% static 'css/music-form.css' %}">
 {% endblock %}
 
 {% block body %}

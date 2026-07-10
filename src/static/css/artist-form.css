@@ -1,0 +1,10 @@
+.cover-upload-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    pointer-events: none;
+}

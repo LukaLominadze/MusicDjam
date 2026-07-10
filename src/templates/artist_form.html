@@ -1,22 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Add Artist | Earpiece{% endblock %}
 
 {% block head %}
-{% include 'shared_form_styles.html' %}
-{% include 'shared_music_styles.html' %}
-<style>
-    .cover-upload-icon {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.4rem;
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        font-weight: 600;
-        pointer-events: none;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/music.css' %}">
+<link rel="stylesheet" href="{% static 'css/artist-form.css' %}">
 {% endblock %}
 
 {% block body %}
