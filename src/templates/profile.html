@@ -59,6 +59,7 @@
         overflow: hidden;
         margin: 0 auto;
         transition: border-color 0.3s ease;
+        position: relative;
     }
 
     .profile-avatar:hover {
@@ -69,6 +70,56 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    .profile-avatar-edit {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(15, 7, 32, 0.85);
+        border: 1.5px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 2;
+        opacity: 0;
+    }
+
+    .profile-header:hover .profile-avatar-edit {
+        opacity: 1;
+    }
+
+    .profile-avatar-edit:hover {
+        background: rgba(233, 30, 140, 0.3);
+        border-color: var(--accent-pink);
+    }
+
+    .profile-avatar-edit input {
+        display: none;
+    }
+
+    .profile-avatar-edit.uploading {
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    .profile-avatar-edit.uploading::after {
+        content: '';
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--text-muted);
+        border-top-color: var(--accent-pink);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     .profile-username {
@@ -200,13 +251,23 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
                     <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
                 </svg>
+                <label class="profile-avatar-edit" id="avatar_edit_label" style="display:none">
+                    <input type="file" accept="image/*" id="avatar_file_input">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>
+                </label>
             </div>
             <h2 class="profile-username" id="profile_username"></h2>
             <button class="btn-logout" id="btn_logout">Log out</button>
         </div>
 
         <div id="playlists_section">
-            <div class="section-label">Playlists</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                <div class="section-label" style="margin-bottom:0">Playlists</div>
+                <a href="/playlist/add/" class="nav-add-btn" id="add_playlist_btn" style="display:none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
+                    <span>Add</span>
+                </a>
+            </div>
             <div class="playlist-scroll" id="playlist_container">
                 <div class="loading-state">Loading playlists...</div>
             </div>
@@ -239,6 +300,8 @@
 
         if (isOwnProfile) {
             document.getElementById('btn_logout').style.display = 'block';
+            document.getElementById('avatar_edit_label').style.display = 'flex';
+            document.getElementById('add_playlist_btn').style.display = 'inline-flex';
         }
 
         try {
@@ -323,5 +386,68 @@
         }
         window.location.href = '/login';
     });
+
+    function rebindAvatarInput() {
+        document.getElementById('avatar_file_input').addEventListener('change', handleAvatarUpload);
+    }
+
+    async function handleAvatarUpload() {
+        const file = this.files[0];
+        if (!file) return;
+
+        const label = document.getElementById('avatar_edit_label');
+        label.classList.add('uploading');
+        label.innerHTML = '';
+
+        try {
+            const initRes = await fetch('/api/profile/update-profile-picture/', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ file_type: file.type }),
+            });
+
+            if (!initRes.ok) throw new Error('Failed to initiate upload');
+            const initData = await initRes.json();
+
+            await fetch(initData.presigned_url, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+
+            await fetch('/api/profile/complete-update-profile-pic/', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ fs_id: initData.fs_id }),
+            });
+
+            const avatarEl = document.getElementById('profile_avatar');
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.alt = 'Profile';
+            img.onload = function () {
+                avatarEl.innerHTML = '';
+                avatarEl.appendChild(img);
+                const newLabel = document.createElement('label');
+                newLabel.className = 'profile-avatar-edit';
+                newLabel.id = 'avatar_edit_label';
+                newLabel.style.opacity = '1';
+                newLabel.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>';
+                avatarEl.appendChild(newLabel);
+                rebindAvatarInput();
+            };
+            img.src = url;
+        } catch (err) {
+            label.classList.remove('uploading');
+            label.style.opacity = '';
+            const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>';
+            label.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input">' + svg;
+            rebindAvatarInput();
+        }
+    }
+
+    rebindAvatarInput();
 </script>
 {% endblock %}

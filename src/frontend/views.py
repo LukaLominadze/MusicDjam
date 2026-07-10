@@ -20,7 +20,10 @@ def register(request):
 def profile(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'profile.html')
+    return render(request, 'profile.html', {
+        'user_id': request.user.id,
+        'is_staff': request.user.is_staff,
+    })
 
 def serve_template(filename):
     def view(request):
