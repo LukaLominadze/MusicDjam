@@ -81,16 +81,23 @@
     cursor: pointer;
     transition: all 0.2s ease;
     z-index: 2;
-    opacity: 0;
-}
-
-.profile-header:hover .profile-avatar-edit {
-    opacity: 1;
+    opacity: 0.7;
+    flex-direction: column;
+    gap: 0;
 }
 
 .profile-avatar-edit:hover {
+    opacity: 1;
     background: rgba(233, 30, 140, 0.3);
     border-color: var(--accent-pink);
+    transform: scale(1.1);
+}
+
+.profile-avatar-edit-text {
+    font-size: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
 }
 
 .profile-avatar-edit input {
@@ -130,6 +137,41 @@
     letter-spacing: 1.5px;
     color: var(--text-muted);
     margin-bottom: 1rem;
+}
+
+.profile-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.profile-section-header .section-label {
+    margin-bottom: 0;
+}
+
+.profile-add-playlist-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    background: rgba(233, 30, 140, 0.15);
+    border: 1.5px solid rgba(233, 30, 140, 0.3);
+    border-radius: 10px;
+    color: var(--accent-pink);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.profile-add-playlist-btn:hover {
+    background: rgba(233, 30, 140, 0.25);
+    border-color: var(--accent-pink);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(233, 30, 140, 0.2);
 }
 
 .playlist-scroll {

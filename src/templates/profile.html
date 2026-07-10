@@ -23,9 +23,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--text-muted)" viewBox="0 0 16 16">
                     <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
                 </svg>
-                <label class="profile-avatar-edit" id="avatar_edit_label" style="display:none">
+                <label class="profile-avatar-edit" id="avatar_edit_label">
                     <input type="file" accept="image/*" id="avatar_file_input">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>
+                    <span class="profile-avatar-edit-text">Edit</span>
                 </label>
             </div>
             <h2 class="profile-username" id="profile_username"></h2>
@@ -33,11 +34,11 @@
         </div>
 
         <div id="playlists_section">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-                <div class="section-label" style="margin-bottom:0">Playlists</div>
-                <a href="/playlist/add/" class="nav-add-btn" id="add_playlist_btn" style="display:none">
+            <div class="profile-section-header">
+                <div class="section-label">Playlists</div>
+                <a href="/playlist/add/" class="profile-add-playlist-btn" id="add_playlist_btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
-                    <span>Add</span>
+                    <span>New Playlist</span>
                 </a>
             </div>
             <div class="playlist-scroll" id="playlist_container">
@@ -72,8 +73,6 @@
 
         if (isOwnProfile) {
             document.getElementById('btn_logout').style.display = 'block';
-            document.getElementById('avatar_edit_label').style.display = 'flex';
-            document.getElementById('add_playlist_btn').style.display = 'inline-flex';
         }
 
         try {
@@ -206,7 +205,7 @@
                 newLabel.className = 'profile-avatar-edit';
                 newLabel.id = 'avatar_edit_label';
                 newLabel.style.opacity = '1';
-                newLabel.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>';
+                newLabel.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg><span class="profile-avatar-edit-text">Edit</span>';
                 avatarEl.appendChild(newLabel);
                 rebindAvatarInput();
             };
@@ -215,7 +214,7 @@
             label.classList.remove('uploading');
             label.style.opacity = '';
             const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="var(--text-muted)" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-1.707 6.293 6.293-2.5 2.5L3.793 8.293z"/></svg>';
-            label.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input">' + svg;
+            label.innerHTML = '<input type="file" accept="image/*" id="avatar_file_input">' + svg + '<span class="profile-avatar-edit-text">Edit</span>';
             rebindAvatarInput();
         }
     }
