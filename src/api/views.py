@@ -1,8 +1,10 @@
+from django.contrib.auth import authenticate, login
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.tokens import RefreshToken
 from .repositories import ArtistRepository, AlbumRepository, MusicRepository, PlaylistRepository
 from .serializers import RegisterSerializer, ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer
 from .models import User, Artist, Album, Music, Playlist
@@ -20,6 +22,35 @@ class RegisterView(APIView):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response(
+                {"detail": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"detail": "Invalid username or password."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class UserProfileViewSet(viewsets.ViewSet):
