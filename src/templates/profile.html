@@ -64,15 +64,17 @@
     </svg>`;
 
     async function loadProfile() {
-        const params = new URLSearchParams(window.location.search);
-        const userId = params.get('id');
-        const isOwnProfile = !userId;
-        const url = userId
-            ? `/api/profile/?id=${encodeURIComponent(userId)}`
-            : '/api/profile/';
+        const profileUserId = '{{ user_id|safe }}';
+        const loggedInUserId = '{{ logged_in_user_id|safe }}';
+        const isOwnProfile = profileUserId === loggedInUserId;
+        const url = `/api/profile/?id=${encodeURIComponent(profileUserId)}`;
 
         if (isOwnProfile) {
             document.getElementById('btn_logout').style.display = 'block';
+        } else {
+            document.getElementById('btn_logout').style.display = 'none';
+            document.getElementById('avatar_edit_label').style.display = 'none';
+            document.getElementById('add_playlist_btn').style.display = 'none';
         }
 
         try {

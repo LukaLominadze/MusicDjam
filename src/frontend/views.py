@@ -22,6 +22,7 @@ def profile(request, user_id=None):
         return redirect('login')
     return render(request, 'profile.html', {
         'user_id': user_id or request.user.id,
+        'logged_in_user_id': request.user.id,
         'is_staff': request.user.is_staff,
     })
 
