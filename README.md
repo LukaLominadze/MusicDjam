@@ -41,6 +41,12 @@ Options:
 --user NAME      SeaweedFS S3 user name (default: alice)
 ```
 
+If you have css missing on your Django site, you can run this:
+```
+cd src
+env $(cat ../.env | xargs) python3 manage.py collectstatic --noinput
+```
+
 ## Manual Setup
 
 If you prefer to run each step yourself:
@@ -92,6 +98,12 @@ Then regenerate configs and restart:
 ```bash
 python3 Scripts/generate_env.py
 docker compose up -d
+```
+
+If you have css missing on your Django site, you can run this:
+```
+cd src
+env $(cat ../.env | xargs) python3 manage.py collectstatic --noinput
 ```
 
 ## Dataset Population
