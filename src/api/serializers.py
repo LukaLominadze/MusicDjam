@@ -74,7 +74,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ['id', 'title', 'is_public', 'cover', 'owner', 'songs', 'song_count', 'cover_has_file']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'owner']
 
     def get_song_count(self, obj):
         return obj.songs.count()

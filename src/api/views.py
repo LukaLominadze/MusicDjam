@@ -305,7 +305,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        playlist = serializer.save()
+        playlist = serializer.save(owner=request.user)
         out_serializer = self.get_serializer(playlist)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
