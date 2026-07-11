@@ -3,6 +3,15 @@
 Self-hosted music listening platform.
 https://musicdjam.kabada.org — See the hosted version
 
+## Table of Contents
+1. [Supported Platforms](#supported-platforms)
+2. [Requirements](#requirements)
+3. [Quick Start](#quick-start)
+4. [Manual Setup](#manual-setup)
+5. [S3 Bucket Provisioning](#s3-bucket-provisioning)
+6. [Dataset Population](#dataset-population)
+7. [License](#license)
+
 ## Supported Platforms
 
 Linux (Debian, Ubuntu tested)
