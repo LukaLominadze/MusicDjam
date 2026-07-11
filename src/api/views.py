@@ -66,10 +66,11 @@ class UserProfileViewSet(viewsets.ViewSet):
 
     def list(self, request):
         search = request.query_params.get('search')
-        if search:
-            return self._search_users(request, search)
-
         user_id = request.query_params.get('id')
+        page = request.query_params.get('page')
+
+        if search or page:
+            return self._search_users(request, search)
 
         if user_id:
             try:
