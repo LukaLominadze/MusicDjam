@@ -7,6 +7,10 @@ https://musicdjam.kabada.org — See the hosted version
 
 Linux (Debian, Ubuntu tested)
 
+## Requirements
+- python3
+- Docker
+
 ## Quick Start
 
 ```bash
