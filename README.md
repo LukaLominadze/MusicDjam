@@ -12,11 +12,14 @@ Linux (Debian, Ubuntu tested)
 ```bash
 git clone https://github.com/LukaLominadze/MusicDjam
 cd MusicDjam
+# Editing .env is recommended before first boot
+cp .example.env .env
 python3 Scripts/setup.py
 ```
 
 This sets up everything: venv, dependencies, Docker containers, and SeaweedFS S3 bucket with credentials.
 Edit `.env` beforehand to customize domains, ports, volumes, ssl, or database credentials.
+
 
 Options:
 
