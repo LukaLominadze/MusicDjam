@@ -17,6 +17,7 @@
             <button class="view-toggle-btn" data-view="artists" onclick="switchView('artists')">Artists</button>
             <button class="view-toggle-btn" data-view="albums" onclick="switchView('albums')">Albums</button>
             <button class="view-toggle-btn" data-view="playlists" onclick="switchView('playlists')">Playlists</button>
+            <button class="view-toggle-btn" data-view="users" onclick="switchView('users')">Users</button>
         </div>
         <div class="search-bar">
             <div class="search-input-wrap">
@@ -128,6 +129,7 @@ const VIEW_CONFIG = {
     artists:  { api: '/api/artist/',   template: '/artist_card.html',  emptyMsg: 'No artists found' },
     albums:   { api: '/api/album/',    template: '/album_card.html',   emptyMsg: 'No albums found' },
     playlists:{ api: '/api/playlist/', template: '/playlist_card.html', emptyMsg: 'No playlists found' },
+    users:    { api: '/api/profile/',  template: '/user_card.html',    emptyMsg: 'No users found' },
 };
 
 const FILTER_IDS_BY_VIEW = {
@@ -135,6 +137,7 @@ const FILTER_IDS_BY_VIEW = {
     artists:   ['filterArtist'],
     albums:    ['filterTitle', 'filterArtist'],
     playlists: ['filterTitle', 'filterPublic'],
+    users:     [],
 };
 
 const audio = document.getElementById('audioPlayer');
@@ -145,7 +148,7 @@ searchInput.addEventListener('keydown', (e) => {
 });
 
 async function loadTemplates() {
-    const views = ['music', 'artists', 'albums', 'playlists'];
+    const views = ['music', 'artists', 'albums', 'playlists', 'users'];
     await Promise.all(views.map(async (v) => {
         const resp = await fetch(VIEW_CONFIG[v].template);
         templates[v] = await resp.text();
@@ -170,7 +173,7 @@ function switchView(view) {
         }
     });
 
-    const placeholder = { music: 'Search songs, artists, albums...', artists: 'Search artists...', albums: 'Search albums...', playlists: 'Search playlists...' };
+    const placeholder = { music: 'Search songs, artists, albums...', artists: 'Search artists...', albums: 'Search albums...', playlists: 'Search playlists...', users: 'Search users...' };
     searchInput.placeholder = placeholder[view] || '';
 
     fetchAndRender();
@@ -287,9 +290,16 @@ async function fetchAndRender() {
 }
 
 function canEditDelete(item, view) {
-    if (currentUserIsStaff) return true;
+    if (currentUserIsStaff) {
+        console.log(`[canEditDelete] staff=true, allowing edit/delete for item ${item.id}`);
+        return true;
+    }
     if (view === 'music' || view === 'playlists') {
-        return item.owner && item.owner == currentUserId;
+        const result = item.owner && item.owner == currentUserId;
+        if (!result) {
+            console.warn(`[canEditDelete] denied for item ${item.id}: owner=${item.owner}, currentUserId=${currentUserId}, view=${view}`);
+        }
+        return result;
     }
     return false;
 }
@@ -298,6 +308,10 @@ function buildActionBtns(item, view) {
     if (!canEditDelete(item, view)) return { edit: '', del: '' };
     const typeMap = { music: 'music', artists: 'artist', albums: 'album', playlists: 'playlist' };
     const t = typeMap[view];
+    if (!t) {
+        console.warn(`[buildActionBtns] no type mapping for view="${view}", item.id=${item.id}`);
+        return { edit: '', del: '' };
+    }
     const id = item.id;
     const editUrl = `/${t}/${id}/edit/`;
     return {
@@ -380,12 +394,22 @@ function renderCards(items) {
                 .replace(/\{\{visibility\}\}/g, item.is_public ? 'Public' : 'Private')
                 .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
                 .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+
+        } else if (currentView === 'users') {
+            cardHtml = tpl
+                .replace(/\{\{id\}\}/g, item.id)
+                .replace(/\{\{username\}\}/g, escapeHtml(item.username || 'Unknown'))
+                .replace(/\{\{profile_picture_url\}\}/g, item.profile_picture_url || '');
         }
 
         const temp = document.createElement('div');
         temp.innerHTML = cardHtml.trim();
         const card = temp.firstElementChild;
         card.style.animationDelay = (i * 0.03) + 's';
+
+        if (cardHtml.includes('{{') || cardHtml.includes('}}')) {
+            console.warn(`[renderCards] unresolved template placeholders in item ${item.id}:`, cardHtml.substring(0, 200));
+        }
 
         if (currentView === 'music') {
             if (item.artist && item.artist.id && item.artist.cover_has_file) fetchCover(item.artist.id, card, 'artist');

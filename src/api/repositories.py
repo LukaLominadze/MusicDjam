@@ -1,8 +1,11 @@
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from .models import Artist, Album, Music, Playlist
 from .serializers import ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer
+
+User = get_user_model()
 
 class MusicRepository:
     def list(self, filters=None):
@@ -139,3 +142,11 @@ class ArtistRepository:
 
     def destroy(self, artist):
         artist.delete()
+
+
+class UserRepository:
+    def search(self, query=None):
+        qs = User.objects.all()
+        if query:
+            qs = qs.filter(username__icontains=query)
+        return qs

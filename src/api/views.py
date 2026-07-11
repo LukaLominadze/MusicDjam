@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
-from .repositories import ArtistRepository, AlbumRepository, MusicRepository, PlaylistRepository
-from .serializers import RegisterSerializer, ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer
+from .repositories import ArtistRepository, AlbumRepository, MusicRepository, PlaylistRepository, UserRepository
+from .serializers import RegisterSerializer, ArtistSerializer, AlbumSerializer, MusicSerializer, PlaylistSerializer, UserSearchSerializer
 from .models import User, Artist, Album, Music, Playlist
 from .services import FileMetadataService
 
@@ -65,6 +65,10 @@ class UserProfileViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
+        search = request.query_params.get('search')
+        if search:
+            return self._search_users(request, search)
+
         user_id = request.query_params.get('id')
 
         if user_id:
@@ -99,6 +103,22 @@ class UserProfileViewSet(viewsets.ViewSet):
             'username': target_user.username,
             'profile_picture_url': profile_picture_url,
             'playlists': playlists_data,
+        }, status=status.HTTP_200_OK)
+
+    def _search_users(self, request, search):
+        repo = UserRepository()
+        users = repo.search(search)
+        total = users.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = 30
+        offset = (page - 1) * page_size
+        users = users[offset:offset + page_size]
+        serializer = UserSearchSerializer(users, many=True)
+        return Response({
+            'results': serializer.data,
+            'total': total,
+            'page': page,
+            'page_size': page_size,
         }, status=status.HTTP_200_OK)
 
 

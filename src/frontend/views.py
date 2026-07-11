@@ -17,11 +17,11 @@ def login(request):
 def register(request):
     return render(request, 'register.html')
 
-def profile(request):
+def profile(request, user_id=None):
     if not request.user.is_authenticated:
         return redirect('login')
     return render(request, 'profile.html', {
-        'user_id': request.user.id,
+        'user_id': user_id or request.user.id,
         'is_staff': request.user.is_staff,
     })
 

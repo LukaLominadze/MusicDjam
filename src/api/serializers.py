@@ -83,6 +83,23 @@ class PlaylistSerializer(serializers.ModelSerializer):
         return obj.cover is not None and obj.cover.fs_id is not None
 
 
+class UserSearchSerializer(serializers.ModelSerializer):
+    profile_picture_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'profile_picture_url']
+        read_only_fields = ['id']
+
+    def get_profile_picture_url(self, obj):
+        from .services import FileMetadataService
+        try:
+            service = FileMetadataService()
+            return service.get_download_url(obj.profile_picture)
+        except Exception:
+            return None
+
+
 class ArtistSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     cover_has_file = serializers.SerializerMethodField()
