@@ -108,6 +108,15 @@ def main():
     else:
         print("  [=] .env already exists, keeping current values")
 
+    # Resolve any relative SSL paths to absolute paths (relative to project root)
+    ssl_keys = ("SSL_DIR_PATH", "SSL_CERTIFICATE_PUBLIC_KEY_PATH", "SSL_CERTIFICATE_PRIVATE_KEY_PATH")
+    for key in ssl_keys:
+        val = get_env_value(ENV_FILE, key)
+        if val and not os.path.isabs(val):
+            abs_path = str((ROOT_DIR / val).resolve())
+            set_env_value(ENV_FILE, key, abs_path)
+            print(f"  [+] {key}: {val} -> {abs_path}")
+
     # ── Step 4: generate configs ─────────────────────────────────────
     print("\n" + "=" * 60)
     print("[4/6] Generating infrastructure configs from templates")
@@ -140,7 +149,7 @@ def main():
         print(f"  [*] Waiting for SeaweedFS master to be ready...")
         for attempt in range(30):
             result = subprocess.run(
-                "docker compose exec -T fs-master weed shell -filer= -master=fs-master:9333 -c 'version'",
+                "docker compose exec -T fs-master wget -q -O /dev/null http://localhost:9333/cluster/status",
                 shell=True, cwd=str(ROOT_DIR),
                 capture_output=True, text=True,
             )
@@ -184,6 +193,7 @@ def main():
             print(f"\n  [+] Credentials written to .env:")
             print(f"      FS_S3_ACCESS_KEY_ID={access_key}")
             print(f"      FS_S3_DJANGO_ACCESS_KEY_ID={access_key}")
+            print(f"      DJANGO_AWS_ACCESS_KEY_ID={access_key}")
 
             # Re-generate configs and restart so compose picks up new values
             print("\n  [*] Regenerating configs with new credentials...")
