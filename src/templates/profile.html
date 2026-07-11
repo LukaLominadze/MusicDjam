@@ -139,6 +139,8 @@
                 title.className = 'playlist-title';
                 title.textContent = playlist.title;
 
+                card.onclick = function () { window.location = '/playlist/' + playlist.id + '/'; };
+
                 card.appendChild(cover);
                 card.appendChild(title);
                 container.appendChild(card);

@@ -163,6 +163,8 @@ function renderCards(items) {
         const lengthStr = formatLength(m.length);
         const playDisabled = m.has_file ? '' : 'disabled';
 
+        const actions = buildMusicActionBtns(m);
+
         let cardHtml = musicTemplate
             .replace(/\{\{id\}\}/g, m.id)
             .replace(/\{\{title\}\}/g, escapeHtml(m.title || 'Untitled'))
@@ -170,7 +172,9 @@ function renderCards(items) {
             .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
             .replace(/\{\{length_formatted\}\}/g, lengthStr)
             .replace(/\{\{play_disabled\}\}/g, playDisabled)
-            .replace(/\{\{fs_id\}\}/g, m.music_file || '');
+            .replace(/\{\{fs_id\}\}/g, m.music_file || '')
+            .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
+            .replace(/\{\{card_delete_btn\}\}/g, actions.del);
 
         const temp = document.createElement('div');
         temp.innerHTML = cardHtml.trim();
@@ -213,6 +217,37 @@ async function fetchCover(artistId, cardEl) {
 function setCoverImage(cardEl, url) {
     const img = cardEl.querySelector('.music-card-cover img');
     if (img) img.src = url;
+}
+
+function canEditDeleteMusic(m) {
+    if (currentUserIsStaff) return true;
+    return m.owner && m.owner == currentUserId;
+}
+
+function buildMusicActionBtns(m) {
+    if (!canEditDeleteMusic(m)) return { edit: '', del: '' };
+    return {
+        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='/music/${m.id}/edit/'" title="Edit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
+            </svg>
+        </button>`,
+        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteMusic(${m.id})" title="Delete">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
+            </svg>
+        </button>`
+    };
+}
+
+async function deleteMusic(id) {
+    if (!confirm('Are you sure you want to delete this music?')) return;
+    try {
+        const resp = await fetch(`/api/music/${id}/`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Delete failed');
+        await fetchSongs();
+    } catch (e) { alert('Failed to delete: ' + e.message); }
 }
 
 function formatLength(s) { if (!s || s <= 0) return '0:00'; return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
