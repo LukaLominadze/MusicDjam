@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # C extensions
-*.so
+*.STATICFILES_DIRS = [BASE_DIR / 'static']so
 
 # Distribution / packaging
 .Python
@@ -224,3 +224,4 @@ volumes
 compose.yaml
 
 datasets/
+src/staticfiles/
