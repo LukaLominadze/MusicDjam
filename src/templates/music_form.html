@@ -320,8 +320,12 @@ async function handleSubmit() {
             albumId = Number(newAlbum.id);
         }
 
+        const lengthDisplay = document.getElementById('musicLengthDisplay');
+        const lengthSeconds = parseInt(lengthDisplay.dataset.seconds) || 0;
+
         const musicPayload = {
             title: title,
+            length: lengthSeconds,
             is_public: document.getElementById('isPublic').checked,
             artist: artistId || null,
             album: albumId || null
