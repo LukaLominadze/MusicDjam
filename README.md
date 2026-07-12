@@ -19,6 +19,7 @@ Linux (Debian, Ubuntu tested)
 ## Requirements
 - python3
 - Docker
+- gettext (optional - for development)
 
 ## Quick Start
 
