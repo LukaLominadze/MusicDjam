@@ -29,8 +29,14 @@ msgstr "მუსიკა"
 msgid "Artists"
 msgstr "შემსრულებლები"
 
+msgid "Album name"
+msgstr "ალბომის სახელი"
+
 msgid "Albums"
 msgstr "ალბომები"
+
+msgid "Playlist"
+msgstr "პლეილისტი"
 
 msgid "Playlists"
 msgstr "პლეილისტები"
@@ -71,6 +77,9 @@ msgstr "მუსიკა"
 
 msgid "song"
 msgstr "სიმღერა"
+
+msgid "Songs"
+msgstr "სიმღერები"
 
 msgid "songs"
 msgstr "სიმღერა"
@@ -195,9 +204,6 @@ msgstr "შემსრულებელი"
 
 msgid "User"
 msgstr "მომხმარებელი"
-
-msgid "songs"
-msgstr "სიმღერა"
 
 msgid "Title"
 msgstr "სათაური"
@@ -347,9 +353,6 @@ msgstr "ან"
 msgid "Don't have an account?"
 msgstr "არ გაქვთ ანგარიში?"
 
-msgid "Don\u2019t have an account?"
-msgstr "არ გაქვთ ანგარიში?"
-
 msgid "Create one"
 msgstr "შექმენით"
 
@@ -376,6 +379,9 @@ msgstr "შექმენით თქვენი ანგარიში დ
 
 msgid "Email"
 msgstr "ელფოსტა"
+
+msgid "you@example.com"
+msgstr "you@example.com"
 
 msgid "Confirm Password"
 msgstr "პაროლის დადასტურება"
