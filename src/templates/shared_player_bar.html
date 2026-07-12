@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="player-bar hidden" id="playerBar">
     <div class="player-info">
         <div class="player-cover" id="playerCover"></div>
@@ -39,14 +40,14 @@
 </div>
 
 <script>
-const S = window.I18N;
+const Spb = window.I18N;
 
 function showPlayerBar(musicItem) {
     const bar = document.getElementById('playerBar');
     bar.classList.remove('hidden');
 
-    document.getElementById('playerTitle').textContent = musicItem.title || S.untitled;
-    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : S.unknownArtist;
+    document.getElementById('playerTitle').textContent = musicItem.title || Spb.untitled;
+    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : Spb.unknownArtist;
     document.getElementById('playerTotalTime').textContent = formatLength(musicItem.length);
 
     const coverEl = document.getElementById('playerCover');
