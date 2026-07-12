@@ -10,7 +10,8 @@ https://musicdjam.kabada.org — See the hosted version
 4. [Manual Setup](#manual-setup)
 5. [S3 Bucket Provisioning](#s3-bucket-provisioning)
 6. [Dataset Population](#dataset-population)
-7. [License](#license)
+7. [Architecture & Services](#architecture--services)
+8. [License](#license)
 
 ## Supported Platforms
 
@@ -117,6 +118,47 @@ python3 -m pip install -r Scripts/fma_requirements.txt
 python3 Scripts/download_fma.py
 python3 Scripts/upload_fma.py
 ```
+
+##Architecture & Services
+```
+                    ┌────────────────┐
+                    │   User/Client  │
+                    └───────┬────────┘
+                            │
+                            ▼
+                  ┌────────────────┐
+                  │      Nginx     │
+                  └───────┬──┬─────┘
+                          │  │
+             ┌────────────┘  └────────────┐
+             │ (Web Traffic)              │ (Direct Media Streams)
+             ▼                            ▼
+   ┌──────────────────┐          ┌──────────────────┐
+   │    src (Django)  │◄────────►│  fs-s3 / Filer  │
+   └─────────┬────────┘          └──────────────────┘
+             │
+             ▼
+   ┌──────────────────┐
+   │  db (PostgreSQL) │
+   └──────────────────┘
+```
+
+### Component Interactions
+* **User ↔ Nginx:** All incoming requests (HTTP/HTTPS) hit the Nginx reverse proxy first. Nginx handles SSL termination (if configured) and acts as the secure gateway to internal services.
+* **Nginx ↔ Django (`src`):** Nginx forwards frontend page views, playlist mutations, and API endpoint traffic straight to the underlying Django application server.
+* **Nginx ↔ S3 Subsystem (`fs-s3`):** High-performance multimedia streams bypass the Django backend completely. Nginx proxies these data chunks directly from the SeaweedFS S3 gateway to offload heavy file I/O operations.
+* **Django ↔ PostgreSQL (`db`):** Persistent relational data (such as user profiles, playlist relations, and track metadata) is structured and queried here.
+* **Django ↔ S3 Subsystem:** The Django application interacts with the SeaweedFS internal endpoint using standard S3 API protocols to write uploaded music files, analyze metadata, and store cover art.
+
+| Service / Container Name | Role & Purpose |
+| :--- | :--- |
+| **`nginx`** | The edge reverse proxy. Ingests all client traffic, offloads SSL termination, and maps domain routes to the backend applications. |
+| **`src`** | The core application engine. Runs the Django framework, serving the HTML frontend templates, handling the REST API, and managing database migrations. |
+| **`db`** | PostgreSQL relational database holding all application state, user accounts, and track metadata. |
+| **`adminer`** | A lightweight database management tool providing a secure web user interface to inspect, query, and manage the PostgreSQL database. |
+| **`fs-master,volume,filer`** | The core of object storage. |
+| **`fs-s3`** | An Amazon S3-compatible API gateway exposed by SeaweedFS, allowing Django and client clients to interact with the file system using standard S3 client libraries. |
+| **`fs-admin`** | The administrative web interface for SeaweedFS, allowing server operators to monitor cluster health, volume distribution, and storage metrics visually. |
 
 ## License
 
