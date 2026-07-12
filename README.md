@@ -3,6 +3,15 @@
 Self-hosted music listening platform.
 https://musicdjam.kabada.org — See the hosted version
 
+## Table of Contents
+1. [Supported Platforms](#supported-platforms)
+2. [Requirements](#requirements)
+3. [Quick Start](#quick-start)
+4. [Manual Setup](#manual-setup)
+5. [S3 Bucket Provisioning](#s3-bucket-provisioning)
+6. [Dataset Population](#dataset-population)
+7. [License](#license)
+
 ## Supported Platforms
 
 Linux (Debian, Ubuntu tested)
@@ -30,6 +39,12 @@ Options:
 ```
 --bucket NAME    S3 bucket name (default: value from .env)
 --user NAME      SeaweedFS S3 user name (default: alice)
+```
+
+If you have css missing on your Django site, you can run this:
+```
+cd src
+env $(cat ../.env | xargs) python3 manage.py collectstatic --noinput
 ```
 
 ## Manual Setup
@@ -83,6 +98,12 @@ Then regenerate configs and restart:
 ```bash
 python3 Scripts/generate_env.py
 docker compose up -d
+```
+
+If you have css missing on your Django site, you can run this:
+```
+cd src
+env $(cat ../.env | xargs) python3 manage.py collectstatic --noinput
 ```
 
 ## Dataset Population
