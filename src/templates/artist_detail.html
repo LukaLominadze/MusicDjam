@@ -279,6 +279,43 @@ audio.addEventListener('error', () => { setPlayingState(currentPlayingId, false)
 
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+async function downloadMusic(musicId) {
+    const item = currentData.find(m => m.id === musicId);
+    const title = item ? (item.title || 'music') : 'music';
+
+    try {
+        let blobUrl;
+
+        if (audioCache.has(musicId)) {
+            blobUrl = audioCache.get(musicId);
+        } else {
+            let downloadUrl = sessionStorage.getItem('dl_' + musicId);
+
+            if (!downloadUrl) {
+                const resp = await fetch(`/api/music/${musicId}/download/`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error('Download unavailable');
+                const data = await resp.json();
+                if (!data.download_url) throw new Error('No URL');
+                downloadUrl = data.download_url;
+                sessionStorage.setItem('dl_' + musicId, downloadUrl);
+            }
+
+            const blob = await (await fetch(downloadUrl)).blob();
+            blobUrl = URL.createObjectURL(blob);
+            audioCache.set(musicId, blobUrl);
+        }
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = title + '.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (e) {
+        console.error('Download failed:', e);
+    }
+}
+
 loadTemplate().then(() => { loadEntity(); fetchSongs(); });
 </script>
 {% endblock %}

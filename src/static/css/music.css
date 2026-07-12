@@ -129,6 +129,36 @@
     cursor: not-allowed;
 }
 
+.music-card-main-btns {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.music-card-download-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(155, 89, 182, 0.15);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.music-card-download-btn:hover:not(.disabled) {
+    background: rgba(155, 89, 182, 0.3);
+    box-shadow: 0 0 12px rgba(155, 89, 182, 0.3);
+    transform: scale(1.05);
+}
+
+.music-card-download-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 .empty-state {
     text-align: center;
     padding: 4rem 1rem;
