@@ -445,9 +445,28 @@ function renderCards(items) {
     container.appendChild(grid);
 }
 
+const COVER_CACHE_TTL = 540000;
+
+function getCachedCover(cacheKey) {
+    const raw = sessionStorage.getItem(cacheKey);
+    if (!raw) return null;
+    try {
+        const { url, ts } = JSON.parse(raw);
+        if (Date.now() - ts < COVER_CACHE_TTL) return url;
+        sessionStorage.removeItem(cacheKey);
+    } catch (e) {
+        sessionStorage.removeItem(cacheKey);
+    }
+    return null;
+}
+
+function setCachedCover(cacheKey, url) {
+    sessionStorage.setItem(cacheKey, JSON.stringify({ url, ts: Date.now() }));
+}
+
 async function fetchCover(entityId, cardEl, type) {
     const cacheKey = 'cover_' + type + '_' + entityId;
-    const cached = sessionStorage.getItem(cacheKey);
+    const cached = getCachedCover(cacheKey);
     if (cached) {
         setCoverImage(cardEl, cached);
         return;
@@ -457,7 +476,7 @@ async function fetchCover(entityId, cardEl, type) {
         if (resp.ok) {
             const data = await resp.json();
             if (data.download_url) {
-                sessionStorage.setItem(cacheKey, data.download_url);
+                setCachedCover(cacheKey, data.download_url);
                 setCoverImage(cardEl, data.download_url);
             }
         }
@@ -466,7 +485,7 @@ async function fetchCover(entityId, cardEl, type) {
 
 async function fetchCoverById(entityId, cardEl, type) {
     const cacheKey = 'cover_' + type + '_' + entityId;
-    const cached = sessionStorage.getItem(cacheKey);
+    const cached = getCachedCover(cacheKey);
     if (cached) {
         setCoverImage(cardEl, cached);
         return;
@@ -476,7 +495,7 @@ async function fetchCoverById(entityId, cardEl, type) {
         if (resp.ok) {
             const data = await resp.json();
             if (data.download_url) {
-                sessionStorage.setItem(cacheKey, data.download_url);
+                setCachedCover(cacheKey, data.download_url);
                 setCoverImage(cardEl, data.download_url);
             }
         }
@@ -643,7 +662,7 @@ function showPlayerBar(musicItem) {
     const coverEl = document.getElementById('playerCover');
     if (musicItem.artist && musicItem.artist.id) {
         const cacheKey = 'cover_artist_' + musicItem.artist.id;
-        const cached = sessionStorage.getItem(cacheKey);
+        const cached = getCachedCover(cacheKey);
         if (cached) {
             coverEl.innerHTML = `<img src="${cached}" alt="${S.cover}">`;
         } else {
@@ -652,7 +671,7 @@ function showPlayerBar(musicItem) {
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (data && data.download_url) {
-                        sessionStorage.setItem(cacheKey, data.download_url);
+                        setCachedCover(cacheKey, data.download_url);
                         coverEl.innerHTML = `<img src="${data.download_url}" alt="${S.cover}">`;
                     }
                 }).catch(() => {});
