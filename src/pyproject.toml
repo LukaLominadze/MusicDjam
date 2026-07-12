@@ -30,8 +30,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+i18n = [
+    "polib>=1.2.0",
+    "babel>=2.16.0",
+]
 dev = [
-    "django-types>=0.19.1"
+    "django-types>=0.19.1",
 ]
 
 [tool.setuptools.packages.find]
