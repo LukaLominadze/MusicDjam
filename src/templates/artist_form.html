@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Add Artist | Earpiece{% endblock %}
+{% block title %}{% trans "Add Artist" %} | {% trans "Earpiece" %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/form.css' %}?v=1.01">
@@ -15,11 +15,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
         </svg>
-        Back to Explore
+        {% trans "Back to Explore" %}
     </a>
 
     <div class="entity-form-card">
-        <h1 class="entity-form-title" id="formTitle">Add Artist</h1>
+        <h1 class="entity-form-title" id="formTitle">{% trans "Add Artist" %}</h1>
 
         <div class="entity-form-error" id="globalError">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -31,8 +31,8 @@
 
         <form id="artistForm" onsubmit="handleSubmit(event)">
             <div class="entity-form-group">
-                <label for="artistName">Name</label>
-                <input type="text" id="artistName" name="name" placeholder="Artist name" required autocomplete="off">
+                <label for="artistName">{% trans "Name" %}</label>
+                <input type="text" id="artistName" name="name" placeholder="{% trans "Artist name" %}" required autocomplete="off">
                 <div class="field-error" id="nameError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -43,26 +43,27 @@
             </div>
 
             <div class="entity-form-group">
-                <label>Cover Image</label>
+                <label>{% trans "Cover Image" %}</label>
                 <div class="entity-form-cover-upload" id="coverUpload" onclick="document.getElementById('coverInput').click()">
                     <div class="cover-upload-icon" id="coverPlaceholder">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                             <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
                         </svg>
-                        <span>Add Cover</span>
+                        <span>{% trans "Add Cover" %}</span>
                     </div>
                 </div>
                 <input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverSelect(event)">
                 <div class="entity-form-file-name" id="coverFileName"></div>
             </div>
 
-            <button type="submit" class="entity-form-submit" id="submitBtn">Add Artist</button>
+            <button type="submit" class="entity-form-submit" id="submitBtn">{% trans "Add Artist" %}</button>
         </form>
     </div>
 </div>
 
 <script>
+const S = window.I18N;
 const artistId = {{ artist_id|default:"null" }};
 const userId = '{{ user_id }}';
 const isStaff = {{ is_staff|yesno:"true,false" }};
@@ -83,9 +84,9 @@ let selectedFile = null;
 let existingCoverUrl = null;
 
 if (artistId) {
-    document.getElementById('formTitle').textContent = 'Edit Artist';
-    submitBtn.textContent = 'Save Changes';
-    document.title = 'Edit Artist | Earpiece';
+    document.getElementById('formTitle').textContent = S.editArtist;
+    submitBtn.textContent = S.saveChanges;
+    document.title = S.editArtist + ' | ' + S.brandName;
     loadArtist();
 }
 
@@ -107,7 +108,7 @@ async function loadArtist() {
             }
         }
     } catch (err) {
-        showGlobalError('Failed to load artist data.');
+        showGlobalError(S.failedToLoadArtistData);
     }
 }
 
@@ -171,12 +172,12 @@ async function handleSubmit(e) {
 
     const name = nameInput.value.trim();
     if (!name) {
-        showFieldError(nameInput, 'Name is required.');
+        showFieldError(nameInput, S.nameRequired);
         return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = artistId ? 'Saving...' : 'Adding...';
+    submitBtn.textContent = artistId ? S.saving : S.adding;
 
     try {
         const url = artistId ? `/api/artist/${artistId}/` : '/api/artist/';
@@ -198,7 +199,7 @@ async function handleSubmit(e) {
             } else if (data.non_field_errors) {
                 showGlobalError(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
             } else {
-                showGlobalError('Something went wrong. Please try again.');
+                showGlobalError(S.somethingWentWrong);
             }
             return;
         }
@@ -212,10 +213,10 @@ async function handleSubmit(e) {
 
         window.location.href = `/artist/${newId}/`;
     } catch (err) {
-        showGlobalError('Network error. Please try again.');
+        showGlobalError(S.networkError);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = artistId ? 'Save Changes' : 'Add Artist';
+        submitBtn.textContent = artistId ? S.saveChanges : S.addArtist;
     }
 }
 

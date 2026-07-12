@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{% if playlist_id %}Edit Playlist{% else %}Add Playlist{% endif %} | Earpiece{% endblock %}
+{% block title %}{% if playlist_id %}{% trans "Edit Playlist" %}{% else %}{% trans "Add Playlist" %}{% endif %} | {% trans "Earpiece" %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/form.css' %}?v=1.01">
@@ -15,11 +15,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
         </svg>
-        Back to Explore
+        {% trans "Back to Explore" %}
     </a>
 
     <div class="entity-form-card">
-        <h1 class="entity-form-title" id="formTitle">{% if playlist_id %}Edit Playlist{% else %}Add Playlist{% endif %}</h1>
+        <h1 class="entity-form-title" id="formTitle">{% if playlist_id %}{% trans "Edit Playlist" %}{% else %}{% trans "Add Playlist" %}{% endif %}</h1>
 
         <div class="entity-form-error" id="globalError">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -31,8 +31,8 @@
 
         <form id="playlistForm" onsubmit="handleSubmit(event)">
             <div class="entity-form-group">
-                <label for="playlistTitle">Title</label>
-                <input type="text" id="playlistTitle" name="title" placeholder="Playlist title" required autocomplete="off">
+                <label for="playlistTitle">{% trans "Title" %}</label>
+                <input type="text" id="playlistTitle" name="title" placeholder="{% trans "Playlist title" %}" required autocomplete="off">
                 <div class="field-error" id="titleError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -43,14 +43,14 @@
             </div>
 
             <div class="entity-form-group">
-                <label>Cover Image</label>
+                <label>{% trans "Cover Image" %}</label>
                 <div class="entity-form-cover-upload" id="coverUpload" onclick="document.getElementById('coverInput').click()">
                     <div class="cover-upload-icon" id="coverPlaceholder">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                             <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
                         </svg>
-                        <span>Add Cover</span>
+                        <span>{% trans "Add Cover" %}</span>
                     </div>
                 </div>
                 <input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverSelect(event)">
@@ -59,24 +59,25 @@
 
             <div class="entity-form-checkbox">
                 <input type="checkbox" id="isPublic" name="is_public">
-                <label for="isPublic">Public</label>
+                <label for="isPublic">{% trans "Public" %}</label>
             </div>
 
             <div class="entity-form-group">
-                <span class="songs-section-label">Songs</span>
+                <span class="songs-section-label">{% trans "Songs" %}</span>
                 <div class="song-search-wrapper">
-                    <input type="text" id="songSearch" placeholder="Search for songs..." autocomplete="off">
+                    <input type="text" id="songSearch" placeholder="{% trans "Search for songs..." %}" autocomplete="off">
                     <div class="entity-form-search-results" id="searchResults"></div>
                 </div>
                 <div class="entity-form-tags" id="selectedSongs"></div>
             </div>
 
-            <button type="submit" class="entity-form-submit" id="submitBtn">{% if playlist_id %}Save Changes{% else %}Add Playlist{% endif %}</button>
+            <button type="submit" class="entity-form-submit" id="submitBtn">{% if playlist_id %}{% trans "Save Changes" %}{% else %}{% trans "Add Playlist" %}{% endif %}</button>
         </form>
     </div>
 </div>
 
 <script>
+const S = window.I18N;
 const playlistId = {{ playlist_id|default:"null" }};
 const userId = '{{ user_id }}';
 const isStaff = {{ is_staff|yesno:"true,false" }};
@@ -100,7 +101,7 @@ let existingCoverUrl = null;
 let searchTimeout = null;
 
 if (playlistId) {
-    document.title = 'Edit Playlist | Earpiece';
+    document.title = S.editPlaylist + ' | ' + S.brandName;
     loadPlaylist();
 }
 
@@ -189,7 +190,7 @@ async function loadPlaylist() {
             }
         }
     } catch (err) {
-        showGlobalError('Failed to load playlist data.');
+        showGlobalError(S.failedToLoadPlaylistData);
     }
 }
 
@@ -230,11 +231,11 @@ function renderSearchResults(results) {
     searchResults.innerHTML = '';
     results.forEach(song => {
         if (selectedSongs.some(s => s.id === song.id)) return;
-        const artistName = song.artist ? song.artist.name : 'Unknown Artist';
+        const artistName = song.artist ? song.artist.name : S.unknownArtist;
         const item = document.createElement('div');
         item.className = 'entity-form-search-item';
         item.innerHTML = `
-            <span class="entity-form-search-item-text">${escapeHtml(song.title || 'Untitled')} - ${escapeHtml(artistName)}</span>
+            <span class="entity-form-search-item-text">${escapeHtml(song.title || S.untitled)} - ${escapeHtml(artistName)}</span>
             <button type="button" class="entity-form-search-item-add" onclick="selectSong(${song.id})">+</button>
         `;
         searchResults.appendChild(item);
@@ -251,8 +252,8 @@ function selectSong(songId) {
     const textEl = item.querySelector('.entity-form-search-item-text');
     const text = textEl ? textEl.textContent : '';
     const parts = text.split(' - ');
-    const title = parts[0] || 'Untitled';
-    const artist = parts.slice(1).join(' - ') || 'Unknown Artist';
+    const title = parts[0] || S.untitled;
+    const artist = parts.slice(1).join(' - ') || S.unknownArtist;
 
     addSong({ id: songId, title: title, artist: { name: artist } });
 
@@ -274,11 +275,11 @@ function removeSong(songId) {
 function renderSelectedSongs() {
     selectedSongsContainer.innerHTML = '';
     selectedSongs.forEach(song => {
-        const artistName = song.artist ? song.artist.name : 'Unknown Artist';
+        const artistName = song.artist ? song.artist.name : S.unknownArtist;
         const chip = document.createElement('div');
         chip.className = 'entity-form-tag';
         chip.innerHTML = `
-            <span>${escapeHtml(song.title || 'Untitled')} - ${escapeHtml(artistName)}</span>
+            <span>${escapeHtml(song.title || S.untitled)} - ${escapeHtml(artistName)}</span>
             <button type="button" class="tag-remove" onclick="removeSong(${song.id})">&times;</button>
         `;
         selectedSongsContainer.appendChild(chip);
@@ -292,12 +293,12 @@ async function handleSubmit(e) {
 
     const title = titleInput.value.trim();
     if (!title) {
-        showFieldError(titleInput, 'Title is required.');
+        showFieldError(titleInput, S.titleRequired);
         return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = playlistId ? 'Saving...' : 'Adding...';
+    submitBtn.textContent = playlistId ? S.saving : S.adding;
 
     try {
         const url = playlistId ? `/api/playlist/${playlistId}/` : '/api/playlist/';
@@ -325,7 +326,7 @@ async function handleSubmit(e) {
             } else if (data.non_field_errors) {
                 showGlobalError(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
             } else {
-                showGlobalError('Something went wrong. Please try again.');
+                showGlobalError(S.somethingWentWrong);
             }
             return;
         }
@@ -339,10 +340,10 @@ async function handleSubmit(e) {
 
         window.location.href = `/playlist/${newId}/`;
     } catch (err) {
-        showGlobalError('Network error. Please try again.');
+        showGlobalError(S.networkError);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = playlistId ? 'Save Changes' : 'Add Playlist';
+        submitBtn.textContent = playlistId ? S.saveChanges : S.addPlaylist;
     }
 }
 

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Login | Earpiece{% endblock %}
+{% block title %}{% trans "Login" %} | {% trans "Earpiece" %}{% endblock %}
 
 {% block body %}
 <div class="auth-container d-flex align-items-center justify-content-center px-3">
@@ -19,8 +20,8 @@
                     <path d="M8 4a3 3 0 0 0-3 3v1h6V7a3 3 0 0 0-3-3"/>
                 </svg>
             </div>
-            <h1 class="app-logo mb-1">Earpiece</h1>
-            <p class="auth-subtext mb-0">Sign in to continue listening</p>
+            <h1 class="app-logo mb-1">{% trans "Earpiece" %}</h1>
+            <p class="auth-subtext mb-0">{% trans "Sign in to continue listening" %}</p>
         </div>
 
         <div class="global-error" id="login_global_error">
@@ -33,14 +34,14 @@
 
         <form id="login_form" class="auth-form" novalidate>
             <div class="mb-3">
-                <label class="form-label" for="login_username">Username</label>
+                <label class="form-label" for="login_username">{% trans "Username" %}</label>
                 <div class="input-group">
                     <span class="input-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
                         </svg>
                     </span>
-                    <input type="text" class="form-control" placeholder="Enter username..." id="login_username" autocomplete="username">
+                    <input type="text" class="form-control" placeholder="{% trans "Enter username..." %}" id="login_username" autocomplete="username">
                 </div>
                 <div class="field-error" id="login_username_error">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
@@ -52,14 +53,14 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label" for="login_password">Password</label>
+                <label class="form-label" for="login_password">{% trans "Password" %}</label>
                 <div class="input-group">
                     <span class="input-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2M5 9h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1"/>
                         </svg>
                     </span>
-                    <input type="password" class="form-control" placeholder="Enter password..." id="login_password" autocomplete="current-password">
+                    <input type="password" class="form-control" placeholder="{% trans "Enter password..." %}" id="login_password" autocomplete="current-password">
                 </div>
                 <div class="field-error" id="login_password_error">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
@@ -70,19 +71,21 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-auth w-100 mb-3">Sign In</button>
+            <button type="submit" class="btn btn-auth w-100 mb-3">{% trans "Sign In" %}</button>
         </form>
 
-        <div class="auth-divider">or</div>
+        <div class="auth-divider">{% trans "or" %}</div>
 
         <p class="text-center auth-subtext mb-0">
-            Don't have an account?
-            <a href="{% url 'register' %}" class="auth-link">Create one</a>
+            {% trans "Don't have an account?" %}
+            <a href="{% url 'register' %}" class="auth-link">{% trans "Create one" %}</a>
         </p>
     </div>
 </div>
 
 <script>
+    const S = window.I18N;
+
     function showFieldError(inputId, errorId, message) {
         const input = document.getElementById(inputId)
         const errorEl = document.getElementById(errorId)
@@ -128,18 +131,18 @@
 
         let hasError = false
         if (username === '') {
-            showFieldError('login_username', 'login_username_error', 'Username is required')
+            showFieldError('login_username', 'login_username_error', S.usernameRequired)
             hasError = true
         }
         if (password === '') {
-            showFieldError('login_password', 'login_password_error', 'Password is required')
+            showFieldError('login_password', 'login_password_error', S.passwordRequired)
             hasError = true
         }
         if (hasError) return
 
         const submitBtn = e.target.querySelector('button[type="submit"]')
         submitBtn.disabled = true
-        submitBtn.textContent = 'Signing in...'
+        submitBtn.textContent = S.signingIn
 
         try {
             const response = await fetch('/api/auth/login/', {
@@ -152,8 +155,8 @@
                 const data = await response.json().catch(() => ({}))
 
                 if (response.status === 401) {
-                    showFieldError('login_username', 'login_username_error', 'Invalid username or password')
-                    showFieldError('login_password', 'login_password_error', 'Invalid username or password')
+                    showFieldError('login_username', 'login_username_error', S.invalidCredentials)
+                    showFieldError('login_password', 'login_password_error', S.invalidCredentials)
                 } else if (data.username) {
                     showFieldError('login_username', 'login_username_error', Array.isArray(data.username) ? data.username[0] : data.username)
                 } else if (data.password) {
@@ -161,17 +164,17 @@
                 } else if (data.detail) {
                     showGlobalError('login_global_error', data.detail)
                 } else {
-                    showGlobalError('login_global_error', 'Something went wrong. Please try again.')
+                    showGlobalError('login_global_error', S.somethingWentWrong)
                 }
                 return
             }
 
             window.location.href = '/'
         } catch {
-            showGlobalError('login_global_error', 'Network error. Check your connection and try again.')
+            showGlobalError('login_global_error', S.networkError)
         } finally {
             submitBtn.disabled = false
-            submitBtn.textContent = 'Sign In'
+            submitBtn.textContent = S.signIn
         }
     })
 </script>

@@ -15,7 +15,7 @@
                 <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
             </svg>
         </button>
-        <button class="player-stop-btn" id="playerStopBtn" onclick="playerStop()" title="Stop">
+        <button class="player-stop-btn" id="playerStopBtn" onclick="playerStop()" title="{% trans "Stop" %}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <rect x="3" y="3" width="10" height="10" rx="1.5"/>
             </svg>
@@ -39,12 +39,14 @@
 </div>
 
 <script>
+const S = window.I18N;
+
 function showPlayerBar(musicItem) {
     const bar = document.getElementById('playerBar');
     bar.classList.remove('hidden');
 
-    document.getElementById('playerTitle').textContent = musicItem.title || 'Untitled';
-    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : 'Unknown Artist';
+    document.getElementById('playerTitle').textContent = musicItem.title || S.untitled;
+    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : S.unknownArtist;
     document.getElementById('playerTotalTime').textContent = formatLength(musicItem.length);
 
     const coverEl = document.getElementById('playerCover');

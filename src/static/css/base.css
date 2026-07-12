@@ -407,6 +407,87 @@ body::after {
     object-fit: cover;
 }
 
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.nav-lang-dropdown {
+    position: relative;
+}
+
+.nav-lang-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    background: rgba(155, 89, 182, 0.1);
+    border: 1px solid rgba(155, 89, 182, 0.25);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-lang-btn:hover {
+    background: rgba(155, 89, 182, 0.2);
+    border-color: var(--accent-purple);
+    color: var(--text-primary);
+}
+
+.nav-lang-options {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: rgba(26, 14, 48, 0.98);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+    min-width: 130px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+}
+
+.nav-lang-dropdown.open .nav-lang-options {
+    display: block;
+}
+
+.nav-lang-options form {
+    margin: 0;
+}
+
+.nav-lang-options button {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.nav-lang-options button:hover {
+    background: rgba(233, 30, 140, 0.1);
+    color: var(--text-primary);
+}
+
+.nav-lang-options button.active {
+    color: var(--accent-pink);
+    font-weight: 700;
+}
+
 @media (max-width: 576px) {
     .top-nav {
         padding: 0 0.75rem;

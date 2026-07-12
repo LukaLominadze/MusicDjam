@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}{% if album_id %}Edit Album{% else %}Add Album{% endif %} | Earpiece{% endblock %}
+{% load static i18n %}
+{% block title %}{% if album_id %}{% trans "Edit Album" %}{% else %}{% trans "Add Album" %}{% endif %} | {% trans "Earpiece" %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/form.css' %}?v=1.01">
@@ -10,19 +10,19 @@
 
 {% block body %}
 <div class="entity-form-container">
-    <a href="/" class="entity-form-back">&larr; Back to Explore</a>
+    <a href="/" class="entity-form-back">&larr; {% trans "Back to Explore" %}</a>
 
     <div class="entity-form-card">
         <div class="entity-form-header">
-            <h1 class="entity-form-title">{% if album_id %}Edit Album{% else %}Add Album{% endif %}</h1>
+            <h1 class="entity-form-title">{% if album_id %}{% trans "Edit Album" %}{% else %}{% trans "Add Album" %}{% endif %}</h1>
         </div>
 
         <div id="globalError" class="entity-form-error"></div>
 
         <form id="albumForm" novalidate>
             <div class="entity-form-group">
-                <label for="albumTitle">Title</label>
-                <input type="text" id="albumTitle" name="title" placeholder="Album title" required>
+                <label for="albumTitle">{% trans "Title" %}</label>
+                <input type="text" id="albumTitle" name="title" placeholder="{% trans "Album title" %}" required>
                 <div id="titleError" class="field-error">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -33,9 +33,9 @@
             </div>
 
             <div class="entity-form-group">
-                <label for="albumArtist">Artist</label>
+                <label for="albumArtist">{% trans "Artist" %}</label>
                 <div class="artist-input-wrapper">
-                    <input type="text" id="albumArtist" name="artist" placeholder="Search for an artist...">
+                    <input type="text" id="albumArtist" name="artist" placeholder="{% trans "Search for an artist..." %}">
                     <div id="artistDropdown" class="artist-dropdown"></div>
                 </div>
                 <div id="artistSelected" style="display:none;" class="artist-selected-tag">
@@ -53,7 +53,7 @@
             </div>
 
             <div class="entity-form-group">
-                <label>Cover Image</label>
+                <label>{% trans "Cover Image" %}</label>
                 <div class="entity-form-cover-upload" id="coverUploadArea">
                     <svg id="coverPlaceholder" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="var(--text-muted)" viewBox="0 0 16 16">
                         <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
@@ -65,7 +65,7 @@
             </div>
 
             <button type="submit" class="entity-form-submit" id="submitBtn">
-                {% if album_id %}Save Changes{% else %}Add Album{% endif %}
+                {% if album_id %}{% trans "Save Changes" %}{% else %}{% trans "Add Album" %}{% endif %}
             </button>
         </form>
     </div>
@@ -73,6 +73,7 @@
 
 <script>
 (function() {
+    const S = window.I18N;
     const ALBUM_ID = {{ album_id|default:"null" }};
     const form = document.getElementById('albumForm');
     const titleInput = document.getElementById('albumTitle');
@@ -102,7 +103,7 @@
     async function fetchAlbumData() {
         try {
             const resp = await fetch(`/api/album/${ALBUM_ID}/`, { credentials: 'same-origin' });
-            if (!resp.ok) throw new Error('Failed to load album data');
+            if (!resp.ok) throw new Error(S.failedToLoadAlbumData);
             const data = await resp.json();
 
             titleInput.value = data.title || '';
@@ -123,7 +124,7 @@
                 } catch (e) {}
             }
         } catch (e) {
-            showGlobalError('Failed to load album data: ' + e.message);
+            showGlobalError(S.failedToLoadAlbumData + ': ' + e.message);
         }
     }
 
@@ -148,7 +149,7 @@
         artistSelected.style.display = 'inline-flex';
         artistInput.value = '';
         artistInput.placeholder = name;
-        artistStatus.textContent = 'New artist (will be created on save)';
+        artistStatus.textContent = S.newArtistWillBeCreatedOnSave;
         artistStatus.className = 'artist-status is-new';
         hideArtistError();
     }
@@ -158,7 +159,7 @@
         isNewArtist = false;
         newArtistName = '';
         artistSelected.style.display = 'none';
-        artistInput.placeholder = 'Search for an artist...';
+        artistInput.placeholder = S.searchForArtist;
         artistStatus.textContent = '';
         artistStatus.className = 'artist-status';
     });
@@ -223,7 +224,7 @@
         if (!hasExactMatch && query.length > 0) {
             const addItem = document.createElement('div');
             addItem.className = 'artist-dropdown-item add-new';
-            addItem.textContent = 'Add new: ' + query;
+            addItem.textContent = S.addNew.replace('%(query)s', query);
             addItem.addEventListener('click', function() {
                 selectNewArtist(query);
                 artistDropdown.classList.remove('is-visible');
@@ -260,20 +261,20 @@
         let valid = true;
 
         if (!title) {
-            showFieldError('titleError', 'titleErrorText', 'Title is required');
+            showFieldError('titleError', 'titleErrorText', S.titleRequired);
             titleInput.classList.add('has-error');
             valid = false;
         }
 
         if (!selectedArtistId && !isNewArtist) {
-            showFieldError('artistError', 'artistErrorText', 'Artist is required');
+            showFieldError('artistError', 'artistErrorText', S.artistRequired);
             valid = false;
         }
 
         if (!valid) return;
 
         submitBtn.disabled = true;
-        submitBtn.textContent = ALBUM_ID ? 'Saving...' : 'Adding...';
+        submitBtn.textContent = ALBUM_ID ? S.saving : S.adding;
 
         try {
             let artistId = selectedArtistId;
@@ -287,7 +288,7 @@
                 });
                 if (!artistResp.ok) {
                     const err = await artistResp.json();
-                    throw new Error(err.detail || err.error || 'Failed to create artist');
+                    throw new Error(err.detail || err.error || S.failedToCreateArtist);
                 }
                 const artistData = await artistResp.json();
                 artistId = artistData.id;
@@ -314,7 +315,7 @@
 
             if (!albumResp.ok) {
                 const err = await albumResp.json();
-                const msg = err.detail || err.title?.[0] || err.artist?.[0] || 'Failed to save album';
+                const msg = err.detail || err.title?.[0] || err.artist?.[0] || S.failedToSaveAlbum;
                 throw new Error(msg);
             }
 
@@ -329,7 +330,7 @@
         } catch (e) {
             showGlobalError(e.message);
             submitBtn.disabled = false;
-            submitBtn.textContent = ALBUM_ID ? 'Save Changes' : 'Add Album';
+            submitBtn.textContent = ALBUM_ID ? S.saveChanges : S.addAlbum;
         }
     });
 
@@ -342,7 +343,7 @@
         });
         if (!putResp.ok) {
             const err = await putResp.json();
-            throw new Error(err.error || 'Failed to initiate cover upload');
+            throw new Error(err.error || S.failedToInitiateCoverUpload);
         }
         const putData = await putResp.json();
 
@@ -351,7 +352,7 @@
             headers: { 'Content-Type': file.type },
             body: file
         });
-        if (!uploadResp.ok) throw new Error('Failed to upload cover file');
+        if (!uploadResp.ok) throw new Error(S.failedToUploadCoverFile);
 
         const completeResp = await fetch(`/api/album/${albumId}/complete-upload-cover/`, {
             method: 'PUT',
@@ -359,7 +360,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fs_id: putData.fs_id })
         });
-        if (!completeResp.ok) throw new Error('Failed to finalize cover upload');
+        if (!completeResp.ok) throw new Error(S.failedToFinalizeCoverUpload);
     }
 
     function showGlobalError(msg) {

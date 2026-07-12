@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{% if music_id %}Edit Music{% else %}Add Music{% endif %} | Earpiece{% endblock %}
+{% block title %}{% if music_id %}{% trans "Edit Music" %}{% else %}{% trans "Add Music" %}{% endif %} | {% trans "Earpiece" %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/form.css' %}?v=1.01">
@@ -11,11 +11,11 @@
 
 {% block body %}
 <div class="entity-form-container">
-    <a href="/" class="entity-form-back">&larr; Back to Explore</a>
+    <a href="/" class="entity-form-back">&larr; {% trans "Back to Explore" %}</a>
 
     <div class="entity-form-card">
         <div class="entity-form-header">
-            <h1 class="entity-form-title">{% if music_id %}Edit Music{% else %}Add Music{% endif %}</h1>
+            <h1 class="entity-form-title">{% if music_id %}{% trans "Edit Music" %}{% else %}{% trans "Add Music" %}{% endif %}</h1>
         </div>
 
         <div class="entity-form-error" id="globalError">
@@ -28,8 +28,8 @@
 
         <form id="musicForm" onsubmit="return false;">
             <div class="entity-form-group">
-                <label for="musicTitle">Title</label>
-                <input type="text" id="musicTitle" placeholder="Enter song title..." required>
+                <label for="musicTitle">{% trans "Title" %}</label>
+                <input type="text" id="musicTitle" placeholder="{% trans "Enter song title..." %}" required>
                 <div class="field-error" id="titleError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -40,16 +40,16 @@
             </div>
 
             <div class="entity-form-group">
-                <label>Music File</label>
+                <label>{% trans "Music File" %}</label>
                 <label class="entity-form-file-label" for="musicFile">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
                         <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
                     </svg>
-                    Choose file
+                    {% trans "Choose file" %}
                 </label>
                 <input type="file" id="musicFile" accept="audio/*" style="display: none;">
-                <div class="entity-form-file-name" id="musicFileName">No file selected</div>
+                <div class="entity-form-file-name" id="musicFileName">{% trans "No file selected" %}</div>
                 <div class="field-error" id="fileError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -60,18 +60,18 @@
             </div>
 
             <div class="entity-form-group">
-                <label>Length</label>
+                <label>{% trans "Length" %}</label>
                 <div class="entity-form-length-display" id="musicLengthDisplay">--:--</div>
             </div>
 
             <div class="entity-form-group">
-                <label for="artistInput">Artist</label>
+                <label for="artistInput">{% trans "Artist" %}</label>
                 <div class="autocomplete-wrapper">
-                    <input type="text" id="artistInput" placeholder="Search or type artist name..." autocomplete="off">
+                    <input type="text" id="artistInput" placeholder="{% trans "Search or type artist name..." %}" autocomplete="off">
                     <input type="hidden" id="artistId">
                     <div class="entity-form-search-results" id="artistResults" style="display: none;"></div>
                 </div>
-                <div class="entity-form-hint">Type to search. Artist must exist in the system.</div>
+                <div class="entity-form-hint">{% trans "Type to search. Artist must exist in the system." %}</div>
                 <div class="field-error" id="artistError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -82,13 +82,13 @@
             </div>
 
             <div class="entity-form-group">
-                <label for="albumInput">Album</label>
+                <label for="albumInput">{% trans "Album" %}</label>
                 <div class="autocomplete-wrapper">
-                    <input type="text" id="albumInput" placeholder="Search or type album title..." autocomplete="off">
+                    <input type="text" id="albumInput" placeholder="{% trans "Search or type album title..." %}" autocomplete="off">
                     <input type="hidden" id="albumId">
                     <div class="entity-form-search-results" id="albumResults" style="display: none;"></div>
                 </div>
-                <div class="entity-form-hint">Type to search. If not found, it will be created automatically.</div>
+                <div class="entity-form-hint">{% trans "Type to search. If not found, it will be created automatically." %}</div>
                 <div class="field-error" id="albumError">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -100,17 +100,18 @@
 
             <div class="entity-form-checkbox">
                 <input type="checkbox" id="isPublic" checked>
-                <label for="isPublic">Public</label>
+                <label for="isPublic">{% trans "Public" %}</label>
             </div>
 
             <button type="submit" class="entity-form-submit" id="submitBtn" onclick="handleSubmit()">
-                {% if music_id %}Save Changes{% else %}Add Music{% endif %}
+                {% if music_id %}{% trans "Save Changes" %}{% else %}{% trans "Add Music" %}{% endif %}
             </button>
         </form>
     </div>
 </div>
 
 <script>
+const S = window.I18N;
 const isEditing = {% if music_id %}true{% else %}false{% endif %};
 const musicId = {% if music_id %}{{ music_id }}{% else %}null{% endif %};
 const csrfToken = '{{ csrf_token }}';
@@ -210,7 +211,7 @@ function setupAutocomplete(inputId, resultsId, hiddenId, searchUrl, onSelect) {
     async function fetchResults(query) {
         try {
             const resp = await fetch(searchUrl + encodeURIComponent(query), { credentials: 'same-origin' });
-            if (!resp.ok) throw new Error('Search failed');
+            if (!resp.ok) throw new Error(S.searchFailed);
             const data = await resp.json();
             const items = data.results || [];
             renderResults(items, query);
@@ -240,7 +241,7 @@ function setupAutocomplete(inputId, resultsId, hiddenId, searchUrl, onSelect) {
         if (query && items.length === 0) {
             const notFoundDiv = document.createElement('div');
             notFoundDiv.className = 'entity-form-search-item entity-form-search-create';
-            notFoundDiv.textContent = 'No results found for "' + query + '"';
+            notFoundDiv.textContent = S.noResultsFound.replace('%(query)s', query);
             notFoundDiv.style.color = 'var(--text-muted)';
             notFoundDiv.style.cursor = 'default';
             notFoundDiv.addEventListener('mousedown', function(e) {
@@ -278,7 +279,7 @@ async function createAlbum(title, artistId) {
     });
     if (!resp.ok) {
         const data = await resp.json();
-        throw new Error(data.detail || data.title?.[0] || 'Failed to create album');
+        throw new Error(data.detail || data.title?.[0] || S.failedToCreateAlbum);
     }
     return await resp.json();
 }
@@ -293,13 +294,13 @@ async function handleSubmit() {
 
     const title = document.getElementById('musicTitle').value.trim();
     if (!title) {
-        showFieldError('title', 'Title is required');
+        showFieldError('title', S.titleRequired);
         return;
     }
 
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    submitBtn.textContent = isEditing ? 'Saving...' : 'Adding...';
+    submitBtn.textContent = isEditing ? S.saving : S.adding;
 
     try {
         var artistId = toIntPk(selectedArtistId) || toIntPk(document.getElementById('artistId').dataset.id);
@@ -307,15 +308,15 @@ async function handleSubmit() {
 
         const artistName = document.getElementById('artistInput').value.trim();
         if (artistName && !artistId) {
-            showFieldError('artist', 'Artist not found. Please select an existing artist from the list.');
+            showFieldError('artist', S.artistNotFound);
             submitBtn.disabled = false;
-            submitBtn.textContent = isEditing ? 'Save Changes' : 'Add Music';
+            submitBtn.textContent = isEditing ? S.saveChanges : S.addMusic;
             return;
         }
 
         const albumTitle = document.getElementById('albumInput').value.trim();
         if (albumTitle && !albumId) {
-            submitBtn.textContent = 'Creating album...';
+            submitBtn.textContent = S.creatingAlbum;
             const newAlbum = await createAlbum(albumTitle, artistId);
             albumId = Number(newAlbum.id);
         }
@@ -368,7 +369,7 @@ async function handleSubmit() {
         const fileInput = document.getElementById('musicFile');
         const file = fileInput.files[0];
         if (file) {
-            submitBtn.textContent = 'Uploading file...';
+            submitBtn.textContent = S.uploadingFile;
 
             const uploadResp = await fetch('/api/music/' + resultId + '/upload/', {
                 method: 'PUT',
@@ -381,7 +382,7 @@ async function handleSubmit() {
             });
             if (!uploadResp.ok) {
                 const data = await uploadResp.json();
-                throw new Error(data.error || 'Failed to initiate upload');
+                throw new Error(data.error || S.failedToInitiateUpload);
             }
             const uploadData = await uploadResp.json();
 
@@ -402,7 +403,7 @@ async function handleSubmit() {
             });
             if (!completeResp.ok) {
                 const data = await completeResp.json();
-                throw new Error(data.error || 'Failed to complete upload');
+                throw new Error(data.error || S.failedToCompleteUpload);
             }
         }
 
@@ -410,7 +411,7 @@ async function handleSubmit() {
     } catch (e) {
         showGlobalError(e.message);
         submitBtn.disabled = false;
-        submitBtn.textContent = isEditing ? 'Save Changes' : 'Add Music';
+        submitBtn.textContent = isEditing ? S.saveChanges : S.addMusic;
     }
 }
 
@@ -418,7 +419,7 @@ if (isEditing && musicId) {
     (async function() {
         try {
             const resp = await fetch('/api/music/' + musicId + '/', { credentials: 'same-origin' });
-            if (!resp.ok) throw new Error('Failed to load music data');
+            if (!resp.ok) throw new Error(S.failedToLoadMusicData);
             const data = await resp.json();
 
             document.getElementById('musicTitle').value = data.title || '';
@@ -444,7 +445,7 @@ if (isEditing && musicId) {
                 display.dataset.seconds = data.length;
             }
         } catch (e) {
-            showGlobalError('Failed to load music data: ' + e.message);
+            showGlobalError(S.failedToLoadMusicData + ': ' + e.message);
         }
     })();
 }

@@ -1,10 +1,10 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Earpiece{% endblock %}</title>
+    <title>{% block title %}{% trans "Earpiece" %}{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.01">
@@ -14,40 +14,233 @@
 <body>
     <nav class="top-nav">
         <a href="/" class="nav-logo-link">
-            <span class="nav-logo">Earpiece</span>
+            <span class="nav-logo">{% trans "Earpiece" %}</span>
         </a>
         {% if user.is_authenticated %}
         <div class="nav-actions">
             <a href="/music/add/" class="nav-add-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M11.5 6v4.5a3.505 3.505 0 0 0 7 0V6zm-7 0V4.5a3.505 3.505 0 0 0 7 0V6"/><path d="M1.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v1h14V3a1 1 0 0 0-1-1zm13 3H1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z"/></svg>
-                <span>Music</span>
+                <span>{% trans "Music" %}</span>
             </a>
             <a href="/artist/add/" class="nav-add-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/></svg>
-                <span>Artist</span>
+                <span>{% trans "Artist" %}</span>
             </a>
             <a href="/album/add/" class="nav-add-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2S6 11.895 6 13"/><path d="M14 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><path d="M14 12c0 1.105-1.12 2-2.5 2S9 13.105 9 12s1.12-2 2.5-2S14 10.895 14 12"/><path d="M8 4v8"/><path d="M3 12h8"/><path d="M8 4a3 3 0 0 0-3 3v1h6V7a3 3 0 0 0-3-3"/></svg>
-                <span>Album</span>
+                <span>{% trans "Album" %}</span>
             </a>
             <a href="/playlist/add/" class="nav-add-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/><path d="M9.5 3a.5.5 0 0 1 .5.5v5.21l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L9 8.71V3.5a.5.5 0 0 1 .5-.5"/></svg>
-                <span>Playlist</span>
+                <span>{% trans "Playlist" %}</span>
             </a>
         </div>
         {% endif %}
-        <a href="{% if user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'login' %}{% endif %}" class="nav-avatar-link">
-            <div class="nav-avatar">
-                {% if nav_profile_picture_url %}
-                    <img src="{{ nav_profile_picture_url }}" alt="Profile">
-                {% else %}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="var(--text-muted)" viewBox="0 0 16 16">
-                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-                    </svg>
-                {% endif %}
+        <div class="nav-right">
+            {% get_current_language as CURRENT_LANG %}
+            <div class="nav-lang-dropdown" id="langDropdown">
+                <button class="nav-lang-btn" type="button" onclick="document.getElementById('langDropdown').classList.toggle('open')">
+                    {% if CURRENT_LANG == 'ka' %}ქარ{% else %}EN{% endif %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16"><path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </button>
+                <div class="nav-lang-options">
+                    <form action="{% url 'set_language' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" name="language" value="en"{% if CURRENT_LANG == 'en' %} class="active"{% endif %}>English</button>
+                    </form>
+                    <form action="{% url 'set_language' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" name="language" value="ka"{% if CURRENT_LANG == 'ka' %} class="active"{% endif %}>ქართული</button>
+                    </form>
+                </div>
             </div>
-        </a>
+            <a href="{% if user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'login' %}{% endif %}" class="nav-avatar-link">
+                <div class="nav-avatar">
+                    {% if nav_profile_picture_url %}
+                        <img src="{{ nav_profile_picture_url }}" alt="{% trans "Profile" %}">
+                    {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="var(--text-muted)" viewBox="0 0 16 16">
+                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                        </svg>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
     </nav>
+
+    <script>
+    window.I18N = {
+        brandName: '{% trans "Earpiece" %}',
+        untitled: '{% trans "Untitled" %}',
+        unknownArtist: '{% trans "Unknown Artist" %}',
+        unknownAlbum: '{% trans "Unknown Album" %}',
+        unknown: '{% trans "Unknown" %}',
+        cover: '{% trans "Cover" %}',
+        musicWord: '{% trans "music" %}',
+        stop: '{% trans "Stop" %}',
+        play: '{% trans "Play" %}',
+        download: '{% trans "Download" %}',
+        edit: '{% trans "Edit" %}',
+        delete: '{% trans "Delete" %}',
+        previous: '{% trans "Previous" %}',
+        next: '{% trans "Next" %}',
+        pageOf: '{% trans "Page %(current)s of %(total)s" %}',
+        noMusicFound: '{% trans "No music found" %}',
+        noArtistsFound: '{% trans "No artists found" %}',
+        noAlbumsFound: '{% trans "No albums found" %}',
+        noPlaylistsFound: '{% trans "No playlists found" %}',
+        noUsersFound: '{% trans "No users found" %}',
+        tryDifferentSearch: '{% trans "Try a different search." %}',
+        somethingWentWrong: '{% trans "Something went wrong" %}',
+        noSongsYet: '{% trans "No songs yet" %}',
+        notFound: '{% trans "Not found" %}',
+        deleteConfirmMusic: '{% trans "Are you sure you want to delete this music?" %}',
+        deleteConfirmAlbum: '{% trans "Are you sure you want to delete this album?" %}',
+        deleteConfirmArtist: '{% trans "Are you sure you want to delete this artist?" %}',
+        deleteConfirmPlaylist: '{% trans "Are you sure you want to delete this playlist?" %}',
+        deleteFailed: '{% trans "Failed to delete: " %}',
+        song: '{% trans "song" %}',
+        songs: '{% trans "songs" %}',
+        public: '{% trans "Public" %}',
+        private: '{% trans "Private" %}',
+        publicPlaylist: '{% trans "Public Playlist" %}',
+        privatePlaylist: '{% trans "Private Playlist" %}',
+        searchMusic: '{% trans "Search songs, artists, albums..." %}',
+        searchArtists: '{% trans "Search artists..." %}',
+        searchAlbums: '{% trans "Search albums..." %}',
+        searchPlaylists: '{% trans "Search playlists..." %}',
+        searchUsers: '{% trans "Search users..." %}',
+        albumLabel: '{% trans "Album" %}',
+        artistLabel: '{% trans "Artist" %}',
+        userLabel: '{% trans "User" %}',
+        profileLabel: '{% trans "Profile" %}',
+        songsLabel: '{% trans "songs" %}',
+        backToExplore: '{% trans "Back to Explore" %}',
+        back: '{% trans "Back" %}',
+        saveChanges: '{% trans "Save Changes" %}',
+        adding: '{% trans "Adding..." %}',
+        saving: '{% trans "Saving..." %}',
+        uploadingFile: '{% trans "Uploading file..." %}',
+        creatingAlbum: '{% trans "Creating album..." %}',
+        titleRequired: '{% trans "Title is required" %}',
+        noFileSelected: '{% trans "No file selected" %}',
+        chooseFile: '{% trans "Choose file" %}',
+        addCover: '{% trans "Add Cover" %}',
+        addMusic: '{% trans "Add Music" %}',
+        editMusic: '{% trans "Edit Music" %}',
+        addAlbum: '{% trans "Add Album" %}',
+        editAlbum: '{% trans "Edit Album" %}',
+        addArtist: '{% trans "Add Artist" %}',
+        editArtist: '{% trans "Edit Artist" %}',
+        addPlaylist: '{% trans "Add Playlist" %}',
+        editPlaylist: '{% trans "Edit Playlist" %}',
+        musicFile: '{% trans "Music File" %}',
+        coverImage: '{% trans "Cover Image" %}',
+        length: '{% trans "Length" %}',
+        artistSearchHint: '{% trans "Type to search. Artist must exist in the system." %}',
+        albumSearchHint: '{% trans "Type to search. If not found, it will be created automatically." %}',
+        artistNotFound: '{% trans "Artist not found. Please select an existing artist from the list." %}',
+        creatingAccount: '{% trans "Creating account..." %}',
+        signIn: '{% trans "Sign In" %}',
+        signingIn: '{% trans "Signing in..." %}',
+        createAccount: '{% trans "Create Account" %}',
+        invalidCredentials: '{% trans "Invalid username or password" %}',
+        usernameRequired: '{% trans "Username is required" %}',
+        passwordRequired: '{% trans "Password is required" %}',
+        networkError: '{% trans "Network error. Check your connection and try again." %}',
+        somethingWentWrongTry: '{% trans "Something went wrong. Please try again." %}',
+        emailRequired: '{% trans "Email is required" %}',
+        invalidEmail: '{% trans "Please enter a valid email address" %}',
+        usernameMinLength: '{% trans "Username must be at least 3 characters" %}',
+        passwordMinLength: '{% trans "Password must be at least 6 characters" %}',
+        confirmPassword: '{% trans "Please confirm your password" %}',
+        passwordsNoMatch: '{% trans "Passwords do not match" %}',
+        nameRequired: '{% trans "Name is required" %}',
+        artistRequired: '{% trans "Artist is required" %}',
+        coverPreview: '{% trans "Cover preview" %}',
+        newArtistWillBeCreated: '{% trans "New artist (will be created on save)" %}',
+        addNew: '{% trans "Add new: %(query)s" %}',
+        noResultsFound: '{% trans "No results found for %(query)s" %}',
+        failedToCreateAlbum: '{% trans "Failed to create album" %}',
+        failedToCreateArtist: '{% trans "Failed to create artist" %}',
+        failedToSaveAlbum: '{% trans "Failed to save album" %}',
+        failedToLoadData: '{% trans "Failed to load data" %}',
+        failedToInitiateUpload: '{% trans "Failed to initiate upload" %}',
+        failedToCompleteUpload: '{% trans "Failed to complete upload" %}',
+        failedToInitiateCoverUpload: '{% trans "Failed to initiate cover upload" %}',
+        failedToUploadCover: '{% trans "Failed to upload cover file" %}',
+        failedToFinalizeCover: '{% trans "Failed to finalize cover upload" %}',
+        failedToDelete: '{% trans "Failed to delete: " %}',
+        logOut: '{% trans "Log out" %}',
+        playlists: '{% trans "Playlists" %}',
+        newPlaylist: '{% trans "New Playlist" %}',
+        loadingPlaylists: '{% trans "Loading playlists..." %}',
+        noPlaylistsYet: '{% trans "No playlists yet" %}',
+        editBtn: '{% trans "Edit" %}',
+        addMusicBtn: '{% trans "Add Music" %}',
+        songsSection: '{% trans "Songs" %}',
+        searchSongs: '{% trans "Search for songs..." %}',
+        searchArtist: '{% trans "Search for an artist..." %}',
+        albumTitle: '{% trans "Album title" %}',
+        playlistTitle: '{% trans "Playlist title" %}',
+        artistName: '{% trans "Artist name" %}',
+        songTitle: '{% trans "Song title" %}',
+        enterSongTitle: '{% trans "Enter song title..." %}',
+        enterUsername: '{% trans "Enter username..." %}',
+        enterPassword: '{% trans "Enter password..." %}',
+        username: '{% trans "Username" %}',
+        password: '{% trans "Password" %}',
+        email: '{% trans "Email" %}',
+        confirmPasswordLabel: '{% trans "Confirm Password" %}',
+        chooseUsername: '{% trans "Choose a username..." %}',
+        emailPlaceholder: '{% trans "you@example.com" %}',
+        createPassword: '{% trans "Create a password..." %}',
+        repeatPassword: '{% trans "Repeat your password..." %}',
+        or: '{% trans "or" %}',
+        dontHaveAccount: '{% trans "Don\u2019t have an account?" %}',
+        createOne: '{% trans "Create one" %}',
+        alreadyHaveAccount: '{% trans "Already have an account?" %}',
+        signInLink: '{% trans "Sign in" %}',
+        subtitleSignIn: '{% trans "Sign in to continue listening" %}',
+        subtitleRegister: '{% trans "Create your account and start exploring" %}',
+        publicLabel: '{% trans "Public" %}',
+        visibility: '{% trans "Visibility" %}',
+        all: '{% trans "All" %}',
+        title: '{% trans "Title" %}',
+        filters: '{% trans "Filters" %}',
+        musicNav: '{% trans "Music" %}',
+        artistsNav: '{% trans "Artists" %}',
+        albumsNav: '{% trans "Albums" %}',
+        playlistsNav: '{% trans "Playlists" %}',
+        usersNav: '{% trans "Users" %}',
+        emailInvalid: '{% trans "Please enter a valid email address" %}',
+        failedToFinalizeCoverUpload: '{% trans "Failed to finalize cover upload" %}',
+        failedToLoadAlbumData: '{% trans "Failed to load album data" %}',
+        failedToLoadArtistData: '{% trans "Failed to load artist data" %}',
+        failedToLoadMusicData: '{% trans "Failed to load music data" %}',
+        failedToLoadPlaylistData: '{% trans "Failed to load playlist data" %}',
+        failedToLoadProfile: '{% trans "Failed to load profile" %}',
+        failedToUploadCoverFile: '{% trans "Failed to upload cover file" %}',
+        newArtistWillBeCreatedOnSave: '{% trans "New artist (will be created on save)" %}',
+        passwordConfirmRequired: '{% trans "Please confirm your password" %}',
+        passwordsDoNotMatch: '{% trans "Passwords do not match" %}',
+        profile: '{% trans "Profile" %}',
+        searchFailed: '{% trans "Search failed" %}',
+        searchForArtist: '{% trans "Search for an artist..." %}'
+    };
+
+    window.songCount = function(n) {
+        return n + ' ' + (n === 1 ? window.I18N.song : window.I18N.songs);
+    };
+
+    document.addEventListener('click', function(e) {
+        var dd = document.getElementById('langDropdown');
+        if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
+    </script>
+
     {% block body %}
     {% endblock %}
 </body>

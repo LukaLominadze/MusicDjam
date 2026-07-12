@@ -1,7 +1,7 @@
 <div class="music-card clickable-card" data-playlist-id="{{id}}" onclick="window.location='/playlist/{{id}}/'" style="cursor:pointer;">
     <div class="music-card-inner">
         <div class="music-card-cover">
-            <img src="{{cover_url}}" alt="Cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <img src="{{cover_url}}" alt="{{cover_alt}}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="music-card-cover-fallback" style="display:none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="var(--text-muted)" viewBox="0 0 16 16">
                     <path d="M3 13a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0-4a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0-4a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1"/>
@@ -10,7 +10,7 @@
         </div>
         <div class="music-card-info">
             <div class="music-card-title">{{title}}</div>
-            <div class="music-card-artist">{{song_count}} songs</div>
+            <div class="music-card-artist">{{song_count}} {{songs_label}}</div>
             <div class="music-card-album">{{visibility}}</div>
         </div>
         <div class="music-card-actions">

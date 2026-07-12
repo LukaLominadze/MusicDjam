@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.i18n',
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -163,6 +165,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+LANGUAGES = [('en', 'English'), ('ka', 'Georgian')]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+LANGUAGE_COOKIE_NAME = 'django_language'
 
 
 # Static files (CSS, JavaScript, Images)

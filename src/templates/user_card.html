@@ -2,7 +2,7 @@
      onclick="window.location='/profile/{{id}}/'" style="cursor:pointer;">
     <div class="music-card-inner">
         <div class="music-card-cover">
-            <img src="{{profile_picture_url}}" alt="Profile"
+            <img src="{{profile_picture_url}}" alt="{{profile_alt}}"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="music-card-cover-fallback" style="display:none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
@@ -13,7 +13,7 @@
         </div>
         <div class="music-card-info">
             <div class="music-card-title">{{username}}</div>
-            <div class="music-card-artist">User</div>
+            <div class="music-card-artist">{{user_label}}</div>
         </div>
     </div>
 </div>

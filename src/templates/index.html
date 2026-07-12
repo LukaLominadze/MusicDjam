@@ -1,58 +1,58 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Explore - Earpiece{% endblock %}
+{% block title %}{% trans "Explore" %} - {{ brand_name }}{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=1.01">
-<link rel="stylesheet" href="{% static 'css/music.css' %}?v=1.01">
-<link rel="stylesheet" href="{% static 'css/player-bar.css' %}?v=1.01">
+<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/music.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/player-bar.css' %}?v=1.0">
 {% endblock %}
 
 {% block body %}
 <div class="explore-container">
     <div class="search-section">
         <div class="view-toggles">
-            <button class="view-toggle-btn active" data-view="music" onclick="switchView('music')">Music</button>
-            <button class="view-toggle-btn" data-view="artists" onclick="switchView('artists')">Artists</button>
-            <button class="view-toggle-btn" data-view="albums" onclick="switchView('albums')">Albums</button>
-            <button class="view-toggle-btn" data-view="playlists" onclick="switchView('playlists')">Playlists</button>
-            <button class="view-toggle-btn" data-view="users" onclick="switchView('users')">Users</button>
+            <button class="view-toggle-btn active" data-view="music" onclick="switchView('music')">{% trans "Music" %}</button>
+            <button class="view-toggle-btn" data-view="artists" onclick="switchView('artists')">{% trans "Artists" %}</button>
+            <button class="view-toggle-btn" data-view="albums" onclick="switchView('albums')">{% trans "Albums" %}</button>
+            <button class="view-toggle-btn" data-view="playlists" onclick="switchView('playlists')">{% trans "Playlists" %}</button>
+            <button class="view-toggle-btn" data-view="users" onclick="switchView('users')">{% trans "Users" %}</button>
         </div>
         <div class="search-bar">
             <div class="search-input-wrap">
                 <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search songs, artists, albums..." autofocus>
+                <input type="text" id="searchInput" placeholder="{% trans "Search songs, artists, albums..." %}" autofocus>
             </div>
             <button class="filters-toggle" id="filtersToggle" onclick="toggleFilters()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 4px;">
                     <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
                 </svg>
-                Filters
+                {% trans "Filters" %}
             </button>
-            <button class="btn-search" onclick="doSearch()">Search</button>
+            <button class="btn-search" onclick="doSearch()">{% trans "Search" %}</button>
         </div>
         <div class="advanced-filters" id="advancedFilters">
             <div class="filter-group">
-                <label for="filterTitle">Title</label>
-                <input type="text" id="filterTitle" placeholder="Song title">
+                <label for="filterTitle">{% trans "Title" %}</label>
+                <input type="text" id="filterTitle" placeholder="{% trans "Song title" %}">
             </div>
             <div class="filter-group">
-                <label for="filterArtist">Artist</label>
-                <input type="text" id="filterArtist" placeholder="Artist name">
+                <label for="filterArtist">{% trans "Artist" %}</label>
+                <input type="text" id="filterArtist" placeholder="{% trans "Artist name" %}">
             </div>
             <div class="filter-group">
-                <label for="filterAlbum">Album</label>
-                <input type="text" id="filterAlbum" placeholder="Album name">
+                <label for="filterAlbum">{% trans "Album" %}</label>
+                <input type="text" id="filterAlbum" placeholder="{% trans "Album name" %}">
             </div>
             <div class="filter-group">
-                <label for="filterPublic">Visibility</label>
+                <label for="filterPublic">{% trans "Visibility" %}</label>
                 <select id="filterPublic">
-                    <option value="">All</option>
-                    <option value="true">Public</option>
-                    <option value="false">Private</option>
+                    <option value="">{% trans "All" %}</option>
+                    <option value="true">{% trans "Public" %}</option>
+                    <option value="false">{% trans "Private" %}</option>
                 </select>
             </div>
         </div>
@@ -62,9 +62,9 @@
     <div id="musicContainer"></div>
 
     <div class="pagination" id="pagination" style="display:none;">
-        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>{% trans "Previous" %}</button>
         <span class="pagination-info" id="pageInfo"></span>
-        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>{% trans "Next" %}</button>
     </div>
 </div>
 
@@ -85,7 +85,7 @@
                 <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
             </svg>
         </button>
-        <button class="player-stop-btn" id="playerStopBtn" onclick="playerStop()" title="Stop">
+        <button class="player-stop-btn" id="playerStopBtn" onclick="playerStop()" title="{% trans "Stop" %}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <rect x="3" y="3" width="10" height="10" rx="1.5"/>
             </svg>
@@ -121,15 +121,16 @@ let currentPlayingId = null;
 let isPlaying = false;
 const currentUserId = '{{ user_id|safe }}';
 const currentUserIsStaff = {{ is_staff|yesno:"true,false" }};
+const S = window.I18N;
 
 const templates = {};
 
 const VIEW_CONFIG = {
-    music:    { api: '/api/music/',    template: '/music_card.html',    emptyMsg: 'No music found' },
-    artists:  { api: '/api/artist/',   template: '/artist_card.html',  emptyMsg: 'No artists found' },
-    albums:   { api: '/api/album/',    template: '/album_card.html',   emptyMsg: 'No albums found' },
-    playlists:{ api: '/api/playlist/', template: '/playlist_card.html', emptyMsg: 'No playlists found' },
-    users:    { api: '/api/profile/',  template: '/user_card.html',    emptyMsg: 'No users found' },
+    music:    { api: '/api/music/',    template: '/music_card.html',    emptyMsg: S.noMusicFound },
+    artists:  { api: '/api/artist/',   template: '/artist_card.html',  emptyMsg: S.noArtistsFound },
+    albums:   { api: '/api/album/',    template: '/album_card.html',   emptyMsg: S.noAlbumsFound },
+    playlists:{ api: '/api/playlist/', template: '/playlist_card.html', emptyMsg: S.noPlaylistsFound },
+    users:    { api: '/api/profile/',  template: '/user_card.html',    emptyMsg: S.noUsersFound },
 };
 
 const FILTER_IDS_BY_VIEW = {
@@ -138,6 +139,14 @@ const FILTER_IDS_BY_VIEW = {
     albums:    ['filterTitle', 'filterArtist'],
     playlists: ['filterTitle', 'filterPublic'],
     users:     [],
+};
+
+const SEARCH_PLACEHOLDERS = {
+    music: S.searchMusic,
+    artists: S.searchArtists,
+    albums: S.searchAlbums,
+    playlists: S.searchPlaylists,
+    users: S.searchUsers,
 };
 
 const audio = document.getElementById('audioPlayer');
@@ -173,8 +182,7 @@ function switchView(view) {
         }
     });
 
-    const placeholder = { music: 'Search songs, artists, albums...', artists: 'Search artists...', albums: 'Search albums...', playlists: 'Search playlists...', users: 'Search users...' };
-    searchInput.placeholder = placeholder[view] || '';
+    searchInput.placeholder = SEARCH_PLACEHOLDERS[view] || '';
 
     fetchAndRender();
 }
@@ -272,7 +280,7 @@ async function fetchAndRender() {
                         <path d="M4 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V4zm5-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V2z"/>
                     </svg>
                     <h3>${cfg.emptyMsg}</h3>
-                    <p>Try a different search.</p>
+                    <p>${S.tryDifferentSearch}</p>
                 </div>`;
             return;
         }
@@ -283,7 +291,7 @@ async function fetchAndRender() {
         spinner.style.display = 'none';
         container.innerHTML = `
             <div class="empty-state">
-                <h3>Something went wrong</h3>
+                <h3>${S.somethingWentWrong}</h3>
                 <p>${err.message}</p>
             </div>`;
     }
@@ -291,15 +299,10 @@ async function fetchAndRender() {
 
 function canEditDelete(item, view) {
     if (currentUserIsStaff) {
-        console.log(`[canEditDelete] staff=true, allowing edit/delete for item ${item.id}`);
         return true;
     }
     if (view === 'music' || view === 'playlists') {
-        const result = item.owner && item.owner == currentUserId;
-        if (!result) {
-            console.warn(`[canEditDelete] denied for item ${item.id}: owner=${item.owner}, currentUserId=${currentUserId}, view=${view}`);
-        }
-        return result;
+        return item.owner && item.owner == currentUserId;
     }
     return false;
 }
@@ -308,19 +311,16 @@ function buildActionBtns(item, view) {
     if (!canEditDelete(item, view)) return { edit: '', del: '' };
     const typeMap = { music: 'music', artists: 'artist', albums: 'album', playlists: 'playlist' };
     const t = typeMap[view];
-    if (!t) {
-        console.warn(`[buildActionBtns] no type mapping for view="${view}", item.id=${item.id}`);
-        return { edit: '', del: '' };
-    }
+    if (!t) return { edit: '', del: '' };
     const id = item.id;
     const editUrl = `/${t}/${id}/edit/`;
     return {
-        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='${editUrl}'" title="Edit">
+        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='${editUrl}'" title="${S.edit}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
             </svg>
         </button>`,
-        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteEntity('${t}', ${id})" title="Delete">
+        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteEntity('${t}', ${id})" title="${S.delete}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                 <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
@@ -329,8 +329,15 @@ function buildActionBtns(item, view) {
     };
 }
 
+const DELETE_CONFIRM = {
+    music: S.deleteConfirmMusic,
+    artist: S.deleteConfirmArtist,
+    album: S.deleteConfirmAlbum,
+    playlist: S.deleteConfirmPlaylist,
+};
+
 async function deleteEntity(type, id) {
-    if (!confirm('Are you sure you want to delete this ' + type + '?')) return;
+    if (!confirm(DELETE_CONFIRM[type] || S.deleteConfirmMusic)) return;
     try {
         const resp = await fetch(`/api/${type}/${id}/`, {
             method: 'DELETE',
@@ -339,7 +346,7 @@ async function deleteEntity(type, id) {
         if (!resp.ok) throw new Error('Delete failed');
         await fetchAndRender();
     } catch (e) {
-        alert('Failed to delete: ' + e.message);
+        alert(S.deleteFailed + e.message);
     }
 }
 
@@ -354,62 +361,69 @@ function renderCards(items) {
         const actions = buildActionBtns(item, currentView);
 
         if (currentView === 'music') {
-            const artistName = item.artist ? item.artist.name : 'Unknown Artist';
-            const albumTitle = item.album ? item.album.title : 'Unknown Album';
+            const artistName = item.artist ? item.artist.name : S.unknownArtist;
+            const albumTitle = item.album ? item.album.title : S.unknownAlbum;
             const lengthStr = formatLength(item.length);
             const playDisabled = item.has_file ? '' : 'disabled';
 
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || S.untitled))
                 .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
                 .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
                 .replace(/\{\{length_formatted\}\}/g, lengthStr)
                 .replace(/\{\{play_disabled\}\}/g, playDisabled)
                 .replace(/\{\{fs_id\}\}/g, item.music_file || '')
                 .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
-                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del)
+                .replace(/\{\{cover_alt\}\}/g, S.cover)
+                .replace(/\{\{play_label\}\}/g, S.play)
+                .replace(/\{\{download_label\}\}/g, S.download);
 
         } else if (currentView === 'artists') {
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{name\}\}/g, escapeHtml(item.name || 'Unknown'))
+                .replace(/\{\{name\}\}/g, escapeHtml(item.name || S.unknown))
                 .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
-                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del)
+                .replace(/\{\{cover_alt\}\}/g, S.cover)
+                .replace(/\{\{artist_label\}\}/g, S.artistLabel);
 
         } else if (currentView === 'albums') {
-            const artistName = item.artist ? item.artist.name : 'Unknown Artist';
+            const artistName = item.artist ? item.artist.name : S.unknownArtist;
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || S.untitled))
                 .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
                 .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
-                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del)
+                .replace(/\{\{cover_alt\}\}/g, S.cover)
+                .replace(/\{\{album_label\}\}/g, S.albumLabel);
 
         } else if (currentView === 'playlists') {
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{title\}\}/g, escapeHtml(item.title || 'Untitled'))
+                .replace(/\{\{title\}\}/g, escapeHtml(item.title || S.untitled))
                 .replace(/\{\{song_count\}\}/g, item.song_count || 0)
-                .replace(/\{\{visibility\}\}/g, item.is_public ? 'Public' : 'Private')
+                .replace(/\{\{visibility\}\}/g, item.is_public ? S.public : S.private)
                 .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
-                .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+                .replace(/\{\{card_delete_btn\}\}/g, actions.del)
+                .replace(/\{\{cover_alt\}\}/g, S.cover)
+                .replace(/\{\{songs_label\}\}/g, S.songsLabel);
 
         } else if (currentView === 'users') {
             cardHtml = tpl
                 .replace(/\{\{id\}\}/g, item.id)
-                .replace(/\{\{username\}\}/g, escapeHtml(item.username || 'Unknown'))
-                .replace(/\{\{profile_picture_url\}\}/g, item.profile_picture_url || '');
+                .replace(/\{\{username\}\}/g, escapeHtml(item.username || S.unknown))
+                .replace(/\{\{profile_picture_url\}\}/g, item.profile_picture_url || '')
+                .replace(/\{\{profile_alt\}\}/g, S.profileLabel)
+                .replace(/\{\{user_label\}\}/g, S.userLabel);
         }
 
         const temp = document.createElement('div');
         temp.innerHTML = cardHtml.trim();
         const card = temp.firstElementChild;
         card.style.animationDelay = (i * 0.03) + 's';
-
-        if (cardHtml.includes('{{') || cardHtml.includes('}}')) {
-            console.warn(`[renderCards] unresolved template placeholders in item ${item.id}:`, cardHtml.substring(0, 200));
-        }
 
         if (currentView === 'music') {
             if (item.artist && item.artist.id && item.artist.cover_has_file) fetchCover(item.artist.id, card, 'artist');
@@ -486,7 +500,8 @@ function renderPagination() {
     pagination.style.display = 'flex';
     document.getElementById('prevBtn').disabled = currentPage <= 1;
     document.getElementById('nextBtn').disabled = currentPage >= totalPages;
-    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    const parts = S.pageOf.replace('%(current)s', currentPage).replace('%(total)s', totalPages);
+    document.getElementById('pageInfo').textContent = parts;
 }
 
 function changePage(delta) {
@@ -621,8 +636,8 @@ function showPlayerBar(musicItem) {
     const bar = document.getElementById('playerBar');
     bar.classList.remove('hidden');
 
-    document.getElementById('playerTitle').textContent = musicItem.title || 'Untitled';
-    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : 'Unknown Artist';
+    document.getElementById('playerTitle').textContent = musicItem.title || S.untitled;
+    document.getElementById('playerArtist').textContent = musicItem.artist ? musicItem.artist.name : S.unknownArtist;
     document.getElementById('playerTotalTime').textContent = formatLength(musicItem.length);
 
     const coverEl = document.getElementById('playerCover');
@@ -630,7 +645,7 @@ function showPlayerBar(musicItem) {
         const cacheKey = 'cover_artist_' + musicItem.artist.id;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
-            coverEl.innerHTML = `<img src="${cached}" alt="Cover">`;
+            coverEl.innerHTML = `<img src="${cached}" alt="${S.cover}">`;
         } else {
             coverEl.innerHTML = '';
             fetch(`/api/artist/${musicItem.artist.id}/download-cover/`, { credentials: 'same-origin' })
@@ -638,7 +653,7 @@ function showPlayerBar(musicItem) {
                 .then(data => {
                     if (data && data.download_url) {
                         sessionStorage.setItem(cacheKey, data.download_url);
-                        coverEl.innerHTML = `<img src="${data.download_url}" alt="Cover">`;
+                        coverEl.innerHTML = `<img src="${data.download_url}" alt="${S.cover}">`;
                     }
                 }).catch(() => {});
         }
@@ -699,15 +714,9 @@ audio.addEventListener('error', () => {
     setPlayingState(currentPlayingId, false);
 });
 
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
 async function downloadMusic(musicId) {
     const item = currentData.find(m => m.id === musicId);
-    const title = item ? (item.title || 'music') : 'music';
+    const title = item ? (item.title || S.untitled) : S.musicWord;
 
     try {
         let blobUrl;
@@ -740,6 +749,12 @@ async function downloadMusic(musicId) {
     } catch (e) {
         console.error('Download failed:', e);
     }
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 loadTemplates().then(() => fetchAndRender());

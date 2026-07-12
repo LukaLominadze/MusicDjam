@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Album - Earpiece{% endblock %}
+{% block title %}{% trans "Album" %} - {% trans "Earpiece" %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/music.css' %}?v=1.01">
@@ -15,7 +15,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
         </svg>
-        Back to Explore
+        {% trans "Back to Explore" %}
     </a>
 
     <div class="detail-header" id="detailHeader">
@@ -30,7 +30,7 @@
         </div>
         <div class="detail-info">
             <h1 id="detailTitle">-</h1>
-            <div class="detail-subtitle" id="detailArtist">Album</div>
+            <div class="detail-subtitle" id="detailArtist">{% trans "Album" %}</div>
             <div class="detail-actions" id="detailActions"></div>
         </div>
     </div>
@@ -40,9 +40,9 @@
     <div id="songContainer"></div>
 
     <div class="pagination" id="pagination" style="display:none;">
-        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>{% trans "Previous" %}</button>
         <span class="pagination-info" id="pageInfo"></span>
-        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+        <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>{% trans "Next" %}</button>
     </div>
 </div>
 
@@ -51,6 +51,7 @@
 {% include 'shared_player_bar.html' %}
 
 <script>
+const S = window.I18N;
 const PAGE_SIZE = 30;
 let currentPage = 1;
 let totalResults = 0;
@@ -74,11 +75,11 @@ async function loadTemplate() {
 async function loadEntity() {
     try {
         const resp = await fetch(`/api/album/${entityId}/`, { credentials: 'same-origin' });
-        if (!resp.ok) throw new Error('Album not found');
+        if (!resp.ok) throw new Error(S.notFound);
         entityData = await resp.json();
 
-        document.getElementById('detailTitle').textContent = entityData.title || 'Unknown';
-        const artistName = entityData.artist ? entityData.artist.name : 'Unknown Artist';
+        document.getElementById('detailTitle').textContent = entityData.title || S.untitled;
+        const artistName = entityData.artist ? entityData.artist.name : S.unknownArtist;
         document.getElementById('detailArtist').textContent = artistName;
 
         if (entityData.cover_has_file) {
@@ -86,7 +87,7 @@ async function loadEntity() {
             if (coverResp.ok) {
                 const data = await coverResp.json();
                 if (data.download_url) {
-                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="Cover">`;
+                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="${S.cover}">`;
                 }
             }
         } else if (entityData.artist && entityData.artist.id && entityData.artist.cover_has_file) {
@@ -94,19 +95,19 @@ async function loadEntity() {
             if (coverResp.ok) {
                 const data = await coverResp.json();
                 if (data.download_url) {
-                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="Cover">`;
+                    document.getElementById('detailCover').innerHTML = `<img src="${data.download_url}" alt="${S.cover}">`;
                 }
             }
         }
 
         let actionsHtml = '';
         if (currentUserIsStaff) {
-            actionsHtml += `<a href="/album/${entityId}/edit/" class="card-action-btn" title="Edit">
+            actionsHtml += `<a href="/album/${entityId}/edit/" class="card-action-btn" title="${S.edit}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
                 </svg>
             </a>
-            <button class="card-action-btn delete" onclick="deleteAlbum()" title="Delete">
+            <button class="card-action-btn delete" onclick="deleteAlbum()" title="${S.delete}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                     <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
@@ -115,17 +116,17 @@ async function loadEntity() {
         }
         document.getElementById('detailActions').innerHTML = actionsHtml;
     } catch (err) {
-        document.getElementById('detailTitle').textContent = 'Not found';
+        document.getElementById('detailTitle').textContent = S.notFound;
     }
 }
 
 async function deleteAlbum() {
-    if (!confirm('Are you sure you want to delete this album?')) return;
+    if (!confirm(S.deleteConfirmAlbum)) return;
     try {
         const resp = await fetch(`/api/album/${entityId}/`, { method: 'DELETE', credentials: 'same-origin' });
-        if (!resp.ok) throw new Error('Delete failed');
+        if (!resp.ok) throw new Error(S.deleteFailed);
         window.location.href = '/';
-    } catch (e) { alert('Failed to delete: ' + e.message); }
+    } catch (e) { alert(S.deleteFailed + e.message); }
 }
 
 async function fetchSongs() {
@@ -139,17 +140,17 @@ async function fetchSongs() {
 
     try {
         const resp = await fetch(`/api/music/?album_id=${entityId}&page=${currentPage}`, { credentials: 'same-origin' });
-        if (!resp.ok) throw new Error('Failed to fetch songs');
+        if (!resp.ok) throw new Error(S.somethingWentWrong);
 
         const data = await resp.json();
         currentData = data.results || [];
         totalResults = data.total || 0;
 
         spinner.style.display = 'none';
-        document.getElementById('songCount').textContent = `${totalResults} song${totalResults !== 1 ? 's' : ''}`;
+        document.getElementById('songCount').textContent = window.songCount(totalResults);
 
         if (currentData.length === 0) {
-            container.innerHTML = '<div class="empty-state"><h3>No songs yet</h3></div>';
+            container.innerHTML = `<div class="empty-state"><h3>${S.noSongsYet}</h3></div>`;
             return;
         }
 
@@ -157,7 +158,7 @@ async function fetchSongs() {
         renderPagination();
     } catch (err) {
         spinner.style.display = 'none';
-        container.innerHTML = `<div class="empty-state"><h3>Something went wrong</h3><p>${err.message}</p></div>`;
+        container.innerHTML = `<div class="empty-state"><h3>${S.somethingWentWrong}</h3><p>${err.message}</p></div>`;
     }
 }
 
@@ -167,8 +168,8 @@ function renderCards(items) {
     grid.className = 'music-grid';
 
     items.forEach((m, i) => {
-        const artistName = m.artist ? m.artist.name : 'Unknown Artist';
-        const albumTitle = m.album ? m.album.title : 'Unknown Album';
+        const artistName = m.artist ? m.artist.name : S.unknownArtist;
+        const albumTitle = m.album ? m.album.title : S.unknownAlbum;
         const lengthStr = formatLength(m.length);
         const playDisabled = m.has_file ? '' : 'disabled';
 
@@ -176,14 +177,22 @@ function renderCards(items) {
 
         let cardHtml = musicTemplate
             .replace(/\{\{id\}\}/g, m.id)
-            .replace(/\{\{title\}\}/g, escapeHtml(m.title || 'Untitled'))
+            .replace(/\{\{title\}\}/g, escapeHtml(m.title || S.untitled))
             .replace(/\{\{artist_name\}\}/g, escapeHtml(artistName))
             .replace(/\{\{album_title\}\}/g, escapeHtml(albumTitle))
             .replace(/\{\{length_formatted\}\}/g, lengthStr)
             .replace(/\{\{play_disabled\}\}/g, playDisabled)
             .replace(/\{\{fs_id\}\}/g, m.music_file || '')
             .replace(/\{\{card_edit_btn\}\}/g, actions.edit)
-            .replace(/\{\{card_delete_btn\}\}/g, actions.del);
+            .replace(/\{\{card_delete_btn\}\}/g, actions.del)
+            .replace(/\{\{cover_alt\}\}/g, S.cover)
+            .replace(/\{\{play_label\}\}/g, S.play)
+            .replace(/\{\{download_label\}\}/g, S.download)
+            .replace(/\{\{album_label\}\}/g, S.albumLabel)
+            .replace(/\{\{artist_label\}\}/g, S.artistLabel)
+            .replace(/\{\{songs_label\}\}/g, S.songsLabel)
+            .replace(/\{\{profile_alt\}\}/g, S.profileLabel)
+            .replace(/\{\{user_label\}\}/g, S.userLabel);
 
         const temp = document.createElement('div');
         temp.innerHTML = cardHtml.trim();
@@ -236,12 +245,12 @@ function canEditDeleteMusic(m) {
 function buildMusicActionBtns(m) {
     if (!canEditDeleteMusic(m)) return { edit: '', del: '' };
     return {
-        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='/music/${m.id}/edit/'" title="Edit">
+        edit: `<button class="card-action-btn" onclick="event.stopPropagation(); window.location='/music/${m.id}/edit/'" title="${S.edit}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.5-4.107 6.293 6.293-.293-.293H2v-.5h1.5v-1.5H2.5z"/>
             </svg>
         </button>`,
-        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteMusic(${m.id})" title="Delete">
+        del: `<button class="card-action-btn delete" onclick="event.stopPropagation(); deleteMusic(${m.id})" title="${S.delete}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                 <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1h-11z"/>
@@ -251,12 +260,12 @@ function buildMusicActionBtns(m) {
 }
 
 async function deleteMusic(id) {
-    if (!confirm('Are you sure you want to delete this music?')) return;
+    if (!confirm(S.deleteConfirmMusic)) return;
     try {
         const resp = await fetch(`/api/music/${id}/`, { method: 'DELETE', credentials: 'same-origin' });
-        if (!resp.ok) throw new Error('Delete failed');
+        if (!resp.ok) throw new Error(S.deleteFailed);
         await fetchSongs();
-    } catch (e) { alert('Failed to delete: ' + e.message); }
+    } catch (e) { alert(S.deleteFailed + e.message); }
 }
 
 function formatLength(s) { if (!s || s <= 0) return '0:00'; return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
@@ -269,7 +278,7 @@ function renderPagination() {
     el.style.display = 'flex';
     document.getElementById('prevBtn').disabled = currentPage <= 1;
     document.getElementById('nextBtn').disabled = currentPage >= totalPages;
-    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById('pageInfo').textContent = S.pageOf.replace('%(current)s', currentPage).replace('%(total)s', totalPages);
 }
 
 function changePage(d) { currentPage += d; window.scrollTo({top:0,behavior:'smooth'}); fetchSongs(); }
@@ -329,7 +338,7 @@ function escapeHtml(s) { const d = document.createElement('div'); d.textContent 
 
 async function downloadMusic(musicId) {
     const item = currentData.find(m => m.id === musicId);
-    const title = item ? (item.title || 'music') : 'music';
+    const title = item ? (item.title || S.musicWord) : S.musicWord;
 
     try {
         let blobUrl;
