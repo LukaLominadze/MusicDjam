@@ -64,6 +64,7 @@ source venv/bin/activate
 
 cd src
 python3 -m pip install .
+python3 manage.py compilemessages
 cd ..
 
 mkdir -p volumes/fs_admin volumes/fs_filer volumes/fs_master volumes/fs_volume

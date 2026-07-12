@@ -87,9 +87,16 @@ def main():
     run_stream(f"{pip} install python-dotenv")
     run_stream(f"{pip} install .")
 
-    # ── Step 2: volume directories ───────────────────────────────────
+    # ── Step 2: compile translations ──────────────────────────────────
     print("\n" + "=" * 60)
-    print("[2/6] Creating volume directories")
+    print("[2/7] Compiling localized .mo files")
+    print("=" * 60)
+
+    run_stream(f"cd src && {python} manage.py compilemessages")
+
+    # ── Step 3: volume directories ───────────────────────────────────
+    print("\n" + "=" * 60)
+    print("[3/7] Creating volume directories")
     print("=" * 60)
 
     for d in ("volumes/fs_admin", "volumes/fs_filer", "volumes/fs_master", "volumes/fs_volume"):
@@ -98,7 +105,7 @@ def main():
 
     # ── Step 3: .env ─────────────────────────────────────────────────
     print("\n" + "=" * 60)
-    print("[3/6] Preparing .env")
+    print("[4/7] Preparing .env")
     print("=" * 60)
 
     if not ENV_FILE.exists():
@@ -119,21 +126,21 @@ def main():
 
     # ── Step 4: generate configs ─────────────────────────────────────
     print("\n" + "=" * 60)
-    print("[4/6] Generating infrastructure configs from templates")
+    print("[5/7] Generating infrastructure configs from templates")
     print("=" * 60)
 
     run_stream(f"{python} Scripts/generate_env.py")
 
     # ── Step 5: docker compose up ────────────────────────────────────
     print("\n" + "=" * 60)
-    print("[5/6] Building and starting containers")
+    print("[6/7] Building and starting containers")
     print("=" * 60)
 
     run_stream("docker compose up -d --build")
 
     # ── Step 6: S3 bucket + user ─────────────────────────────────────
     print("\n" + "=" * 60)
-    print("[6/6] Provisioning SeaweedFS S3 bucket and user")
+    print("[7/7] Provisioning SeaweedFS S3 bucket and user")
     print("=" * 60)
 
     bucket_name = args.bucket or get_env_value(ENV_FILE, "FS_S3_STORAGE_BUCKET_NAME") or "musicdjam"
