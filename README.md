@@ -119,7 +119,8 @@ python3 Scripts/download_fma.py
 python3 Scripts/upload_fma.py
 ```
 
-##Architecture & Services
+## Architecture & Services
+
 ```
                     ┌────────────────┐
                     │   User/Client  │
